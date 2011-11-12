@@ -8,8 +8,6 @@ import org.apache.commons.httpclient.methods.GetMethod
 import org.apache.commons.httpclient.{HttpStatus, HttpClient, Header, HttpMethodBase}
 import xml.XML
 import org.slf4j.LoggerFactory
-import java.io.InputStream
-import java.nio.channels.ReadableByteChannel
 import com.ifunsoftware.c3.access.{C3ByteChannel, C3AccessException, C3Resource, C3System}
 
 /**
@@ -84,7 +82,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     val status = httpClient.executeMethod(getMethod)
     status match {
       case HttpStatus.SC_OK => {
-        new C3ByteChannel(getMethod)
+        new C3ByteChannelImpl(getMethod)
       }
       case _ =>
         try{
