@@ -11,7 +11,7 @@ trait C3System {
 
   def getResource(ra:String):C3Resource
 
-  def addResource(resource:C3Resource):String
+  def addResource(meta:Map[String, String], data:DataStream):String
 
   def deleteResource(ra:String)
 }

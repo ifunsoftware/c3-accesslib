@@ -1,10 +1,9 @@
 package com.ifunsoftware.c3.access.impl
 
 import java.util.Date
-import java.io.InputStream
 import xml.NodeSeq
 import org.joda.time.format.ISODateTimeFormat
-import collection.mutable.{HashMap, ArrayBuffer}
+import collection.mutable.ArrayBuffer
 import com.ifunsoftware.c3.access.{DataStream, C3AccessException, C3Version, C3Resource}
 
 /**
@@ -25,8 +24,6 @@ class C3ResourceImpl(val system:C3SystemImpl, val xml:NodeSeq) extends C3Resourc
   private var _systemMetadata:Map[String, String] = null
 
   private var _versions:List[C3Version] = null
-
-  private val _newMeta = new HashMap[String, String]
 
   {
     updateFromXmlDescription(xml)
@@ -55,10 +52,6 @@ class C3ResourceImpl(val system:C3SystemImpl, val xml:NodeSeq) extends C3Resourc
 
   override def update(data:DataStream) {
     update(Map(), data)
-  }
-
-  override def refresh() {
-    
   }
 
 

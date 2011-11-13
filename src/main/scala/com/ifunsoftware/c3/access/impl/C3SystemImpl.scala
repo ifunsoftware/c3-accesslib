@@ -8,8 +8,8 @@ import org.apache.commons.httpclient.{HttpStatus, HttpClient, Header, HttpMethod
 import xml.XML
 import org.slf4j.LoggerFactory
 import com.ifunsoftware.c3.access._
-import org.apache.commons.httpclient.methods.{PutMethod, GetMethod}
 import org.apache.commons.httpclient.methods.multipart.{MultipartRequestEntity, StringPart, Part}
+import org.apache.commons.httpclient.methods.{DeleteMethod, PostMethod, PutMethod, GetMethod}
 
 /**
  * Copyright iFunSoftware 2011
@@ -55,8 +55,32 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     }
   }
 
-  override def addResource(resource:C3Resource):String = {
-    null
+  override def addResource(meta:Map[String, String], data:DataStream):String = {
+
+    val method = new PostMethod(url)
+
+    addAuthHeaders(method, requestUri)
+
+    method.setRequestEntity(new MultipartRequestEntity(createPartsArray(meta, data), method.getParams))
+
+    try{
+      val status = httpClient.executeMethod(method)
+      status match {
+        case HttpStatus.SC_CREATED => {
+
+          val xml = XML.load(method.getResponseBodyAsStream)
+
+          ((xml \\ "uploaded")(0) \ "@address" text)
+        }
+        case _ =>
+          if(log.isDebugEnabled){
+            log.debug("Response is not ok: {}", method.getResponseBodyAsString(1024))
+          }
+          throw new C3AccessException(("Filed to post resource, code " + status).asInstanceOf[String])
+      }
+    }finally {
+      method.releaseConnection()
+    }
   }
 
   def updateResource(address:String, meta:Map[String, String], data:DataStream):Int = {
@@ -66,7 +90,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     addAuthHeaders(putMethod, requestUri + address)
 
     val parts = createPartsArray(meta, data)
-    
+
     putMethod.setRequestEntity(new MultipartRequestEntity(parts, putMethod.getParams))
 
     try{
@@ -82,16 +106,30 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
           if(log.isDebugEnabled){
             log.debug("Response is not ok: {}", putMethod.getResponseBodyAsString(1024))
           }
-          throw new Exception(("Filed to post resource, code " + status).asInstanceOf[String])
+          throw new C3AccessException(("Filed to post resource, code " + status).asInstanceOf[String])
       }
     }finally {
       putMethod.releaseConnection()
     }
-    
+
   }
 
-  override def deleteResource(ra:String) {
+  override def deleteResource(address:String) {
+    val deleteMethod = new DeleteMethod(url + address)
 
+    addAuthHeaders(deleteMethod, requestUri + address)
+
+    try{
+      val status = httpClient.executeMethod(deleteMethod)
+      status match{
+        case HttpStatus.SC_OK => null
+        case _ =>
+          if(log.isDebugEnabled){
+            log.debug("Response is not ok: {}", putMethod.getResponseBodyAsString(1024))
+          }
+          throw new C3AccessException(("Failed to delete resource, code " + status).asInstanceOf[String])
+      }
+    }
   }
 
   def getDataInternal(address:String, version:Int):C3ByteChannel = {
@@ -174,10 +212,10 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
   protected def createPartsArray(meta:Map[String, String], data:DataStream):Array[Part] = {
 
     var parts:List[Part] = meta.map(e => {
-              val part = new StringPart(e._1, e._2, "UTF-16")
-              part.setCharSet("UTF-8")
-              part
-            }).toList
+      val part = new StringPart(e._1, e._2, "UTF-16")
+      part.setCharSet("UTF-8")
+      part
+    }).toList
 
     if(data != null){
       parts = data.createFilePart :: parts

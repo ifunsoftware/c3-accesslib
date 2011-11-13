@@ -25,6 +25,4 @@ trait C3Resource {
   def update(meta:Map[String, String])
 
   def update(data:DataStream)
-
-  def refresh()
 }

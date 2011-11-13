@@ -8,7 +8,7 @@ import com.ifunsoftware.c3.access.{DataStream, C3SystemFactory}
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
  */
-@Ignore
+//@Ignore
 class C3IntegrationTest {
 
   @Test
@@ -50,6 +50,29 @@ class C3IntegrationTest {
     val version = resource2.versions.tail.head
 
     val dataChannel = version.getData
+
+    val fileChannel = new FileOutputStream("file.out").getChannel
+
+    try{
+      fileChannel.transferFrom(dataChannel, 0, dataChannel.length)
+    }finally {
+      dataChannel.close()
+      fileChannel.close()
+    }
+  }
+
+  @Test
+  def testResourceAdd() {
+
+    val system = new C3SystemFactory().createSystem("http://c3.aphreet.org:7373")
+
+    val address = system.addResource(Map("my.meta" -> "value0"), DataStream("Preveddd!\njhkjh".getBytes("UTF-8")))
+
+    val resource = system.getResource(address)
+
+    println(resource)
+
+    val dataChannel = system.getData(address)
 
     val fileChannel = new FileOutputStream("file.out").getChannel
 
