@@ -13,7 +13,5 @@ trait C3System {
 
   def addResource(resource:C3Resource):String
 
-  def updateResource(resource:C3Resource)
-
   def deleteResource(ra:String)
 }

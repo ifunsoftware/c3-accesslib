@@ -1,8 +1,6 @@
 package com.ifunsoftware.c3.access
 
-import java.io.InputStream
 import java.util.Date
-
 /**
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
@@ -22,10 +20,11 @@ trait C3Resource {
 
   def versions:List[C3Version]
 
+  def update(meta:Map[String, String], data:DataStream)
 
-  def setMetadataValue(key:String,  value:String)
+  def update(meta:Map[String, String])
 
-  def update(stream:InputStream)
+  def update(data:DataStream)
 
-  def commit()
+  def refresh()
 }
