@@ -2,6 +2,7 @@ package com.ifunsoftware.c3.access.integration
 
 import java.io.FileOutputStream
 import org.junit.{Ignore, Test}
+import org.junit.Assert._
 import com.ifunsoftware.c3.access.{DataStream, C3SystemFactory}
 
 /**
@@ -11,10 +12,12 @@ import com.ifunsoftware.c3.access.{DataStream, C3SystemFactory}
 //@Ignore
 class C3IntegrationTest {
 
+  val C3_SYSTEM_ADDRESS = "http://localhost:8080"
+
   @Test
   def testResourceGet() {
 
-    val system = new C3SystemFactory().createSystem("http://c3.aphreet.org:7373")
+    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
 
     val resource = system.getResource("3EY9anan-2HKa-lGOz-ubI1mSO5-5S5NJXgv-fbb6")
 
@@ -37,7 +40,7 @@ class C3IntegrationTest {
   @Test
   def testResourceUpdate() {
 
-    val system = new C3SystemFactory().createSystem("http://c3.aphreet.org:7373")
+    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
 
     val resource = system.getResource("3EY9anan-2HKa-lGOz-ubI1mSO5-5S5NJXgv-fbb6")
 
@@ -64,14 +67,14 @@ class C3IntegrationTest {
   @Test
   def testResourceAdd() {
 
-    val system = new C3SystemFactory().createSystem("http://c3.aphreet.org:7373")
+    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
 
     val address = system.addResource(Map("my.meta" -> "value0"), DataStream("Preveddd!\njhkjh".getBytes("UTF-8")))
 
     val resource = system.getResource(address)
 
-    println(resource)
-
+    assertEquals("value0", resource.metadata.getOrElse("my.meta", ""))
+    
     val dataChannel = system.getData(address)
 
     val fileChannel = new FileOutputStream("file.out").getChannel

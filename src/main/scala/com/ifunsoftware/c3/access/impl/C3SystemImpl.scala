@@ -125,7 +125,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
         case HttpStatus.SC_OK => null
         case _ =>
           if(log.isDebugEnabled){
-            log.debug("Response is not ok: {}", putMethod.getResponseBodyAsString(1024))
+            log.debug("Response is not ok: {}", deleteMethod.getResponseBodyAsString(1024))
           }
           throw new C3AccessException(("Failed to delete resource, code " + status).asInstanceOf[String])
       }
