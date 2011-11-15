@@ -179,6 +179,22 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     }
   }
 
+  def moveFile(path:String, newPath:String) {
+
+    val method = createPutMethod(fileRequestUri + path)
+
+    method.addRequestHeader(new Header("x-c3-op", "move"))
+    method.setRequestEntity(new StringRequestEntity(newPath, "text/plain", "UTF-8"))
+
+
+    executeMethod(method, status => {
+      status match {
+        case HttpStatus.SC_OK => Unit
+        case _ => handleError(status, method)
+      }
+    })
+  }
+
   protected def createPartsArray(meta:Map[String, String], data:DataStream):Array[Part] = {
 
     var parts:List[Part] = meta.map(e => {
