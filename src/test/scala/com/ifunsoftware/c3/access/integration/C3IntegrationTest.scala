@@ -58,11 +58,9 @@ class C3IntegrationTest {
 
     resource.update(newMeta, DataStream(expectedContent))
 
-    val resource2 = system.getResource(address)
-
     checkMetadataContains(newMeta, resource.metadata)
 
-    val version = resource2.versions.tail.head
+    val version = resource.versions.tail.head
 
     val dataChannel = version.getData
 

@@ -49,6 +49,7 @@ class C3ResourceImpl(val system:C3SystemImpl, val address:String, val xml:NodeSe
 
   override def update(meta:Map[String, String], data:DataStream) {
     system.updateResource(address, meta, data)
+    loaded = false
   }
 
   override def update(meta:Map[String, String]){
@@ -127,7 +128,7 @@ class C3ResourceImpl(val system:C3SystemImpl, val address:String, val xml:NodeSe
 
       log.debug("Resource {} is not loaded yet, loading...", address)
 
-      updateFieldsFromXmlDescription(system.getMetadata(address))
+      updateFieldsFromXmlDescription(system.getMetadataForAddress(address))
     }
     value
   }

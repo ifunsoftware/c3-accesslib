@@ -10,6 +10,8 @@ import com.ifunsoftware.c3.access._
 import org.apache.commons.httpclient.methods.multipart.{MultipartRequestEntity, StringPart, Part}
 import org.apache.commons.httpclient.methods.{DeleteMethod, PostMethod, PutMethod, GetMethod}
 import xml.{NodeSeq, XML}
+import com.ifunsoftware.c3.access.fs.C3FileSystemNode
+import com.ifunsoftware.c3.access.fs.impl.{C3FileImpl, C3DirectoryImpl}
 
 /**
  * Copyright iFunSoftware 2011
@@ -20,9 +22,11 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
 
   val log = LoggerFactory.getLogger(getClass)
 
-  val requestUri = "/rest/resource/"
+  val resourceRequestUri = "/rest/resource/"
 
-  val url = host + requestUri
+  val fileRequestUri = "/rest/fs/"
+
+  val url = host + resourceRequestUri
 
   val httpClient = new HttpClient
 
@@ -30,10 +34,19 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     getDataInternal(ra, 0)
   }
 
-  def getMetadata(ra:String):NodeSeq = {
-    val getMethod = new GetMethod(url + ra + "?metadata")
+  def getMetadataForName(name:String):NodeSeq = {
+    getMetadataInternal(fileRequestUri + name)
+  }
 
-    addAuthHeaders(getMethod, requestUri + ra)
+  def getMetadataForAddress(ra:String):NodeSeq = {
+    getMetadataInternal(resourceRequestUri + ra)
+  }
+
+  protected def getMetadataInternal(relativeUrl:String):NodeSeq = {
+
+    val getMethod = new GetMethod(host + relativeUrl + "?metadata")
+
+    addAuthHeaders(getMethod, relativeUrl)
 
     try{
       val status = httpClient.executeMethod(getMethod)
@@ -48,13 +61,29 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     }
   }
 
-  override def getResource(ra:String):C3Resource = new C3ResourceImpl(this, ra)
+  override def getResource(ra:String):C3Resource = {
+    new C3ResourceImpl(this, ra, getMetadataForAddress(ra))
+  }
+
+  override def getFile(name:String):C3FileSystemNode = {
+    val metadata = getMetadataForName(name)
+
+    val resource = new C3ResourceImpl(this, ra, metadata)
+
+    val isDir = resource.systemMetadata.getOrElse("c3.fs.nodetype", "") == "directory"
+
+    if(isDir){
+      new C3DirectoryImpl(this, resource.address, resource.systemMetadata.getOrElse("c3.fs.nodename", ""), name, metadata)
+    }else{
+      new C3FileImpl
+    }
+  }
 
   override def addResource(meta:Map[String, String], data:DataStream):String = {
 
     val method = new PostMethod(url)
 
-    addAuthHeaders(method, requestUri)
+    addAuthHeaders(method, resourceRequestUri)
 
     method.setRequestEntity(new MultipartRequestEntity(createPartsArray(meta, data), method.getParams))
 
@@ -78,7 +107,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
 
     val putMethod = new PutMethod(url + address)
 
-    addAuthHeaders(putMethod, requestUri + address)
+    addAuthHeaders(putMethod, resourceRequestUri + address)
 
     val parts = createPartsArray(meta, data)
 
@@ -104,7 +133,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
   override def deleteResource(address:String) {
     val deleteMethod = new DeleteMethod(url + address)
 
-    addAuthHeaders(deleteMethod, requestUri + address)
+    addAuthHeaders(deleteMethod, resourceRequestUri + address)
 
     try{
       val status = httpClient.executeMethod(deleteMethod)

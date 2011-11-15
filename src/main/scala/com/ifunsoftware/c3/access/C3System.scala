@@ -1,5 +1,7 @@
 package com.ifunsoftware.c3.access
 
+import fs.C3FileSystemNode
+
 /**
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
@@ -12,6 +14,8 @@ trait C3System {
   def getResource(ra:String):C3Resource
 
   def addResource(meta:Map[String, String], data:DataStream):String
+
+  def getFile(name:String):C3FileSystemNode
 
   def deleteResource(ra:String)
 }
