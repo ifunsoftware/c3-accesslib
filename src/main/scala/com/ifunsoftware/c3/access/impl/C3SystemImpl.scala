@@ -4,14 +4,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.Mac
-import org.apache.commons.httpclient.{HttpStatus, HttpClient, Header, HttpMethodBase}
 import org.slf4j.LoggerFactory
 import com.ifunsoftware.c3.access._
 import org.apache.commons.httpclient.methods.multipart.{MultipartRequestEntity, StringPart, Part}
-import org.apache.commons.httpclient.methods.{DeleteMethod, PostMethod, PutMethod, GetMethod}
 import xml.{NodeSeq, XML}
 import com.ifunsoftware.c3.access.fs.C3FileSystemNode
 import com.ifunsoftware.c3.access.fs.impl.{C3FileImpl, C3DirectoryImpl}
+import java.io.InputStreamReader
+import java.nio.CharBuffer
+import org.apache.commons.httpclient.methods._
+import org.apache.commons.httpclient._
 
 /**
  * Copyright iFunSoftware 2011
@@ -24,156 +26,251 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
 
   val resourceRequestUri = "/rest/resource/"
 
-  val fileRequestUri = "/rest/fs/"
-
-  val url = host + resourceRequestUri
+  val fileRequestUri = "/rest/fs"
 
   val httpClient = new HttpClient
 
-  override def getData(ra:String):C3ByteChannel = {
-    getDataInternal(ra, 0)
-  }
 
-  def getMetadataForName(name:String):NodeSeq = {
-    getMetadataInternal(fileRequestUri + name)
-  }
+  def getMetadataForName(name:String):NodeSeq = getMetadataInternal(fileRequestUri + name)
 
-  def getMetadataForAddress(ra:String):NodeSeq = {
-    getMetadataInternal(resourceRequestUri + ra)
-  }
+
+  def getMetadataForAddress(ra:String):NodeSeq = getMetadataInternal(resourceRequestUri + ra)
+
 
   protected def getMetadataInternal(relativeUrl:String):NodeSeq = {
 
-    val getMethod = new GetMethod(host + relativeUrl + "?metadata")
+    val method = createGetMethod(relativeUrl, true)
 
-    addAuthHeaders(getMethod, relativeUrl)
-
-    try{
-      val status = httpClient.executeMethod(getMethod)
+    executeMethod(method, status => {
       status match {
         case HttpStatus.SC_OK => {
-          XML.load(getMethod.getResponseBodyAsStream)
+          XML.load(method.getResponseBodyAsStream)
         }
-        case _ => handleError(status, getMethod); null
+        case _ => handleError(status, method); null
       }
-    }finally{
-      getMethod.releaseConnection()
-    }
+    })
   }
 
-  override def getResource(ra:String):C3Resource = {
-    new C3ResourceImpl(this, ra, getMetadataForAddress(ra))
-  }
+  override def getResource(ra:String):C3Resource = new C3ResourceImpl(this, ra, getMetadataForAddress(ra))
 
-  override def getFile(name:String):C3FileSystemNode = {
-    val metadata = getMetadataForName(name)
 
-    val resource = new C3ResourceImpl(this, ra, metadata)
+  override def getFile(fullname:String):C3FileSystemNode = {
+    val metadata = getMetadataForName(fullname)
+
+    val resource = new C3ResourceImpl(this, null, metadata)
 
     val isDir = resource.systemMetadata.getOrElse("c3.fs.nodetype", "") == "directory"
 
+    val name = resource.systemMetadata.get("c3.fs.nodename") match {
+      case Some(value) => value
+      case None => {
+        if(fullname == "/") "/"
+        else throw new C3AccessException("File " + fullname + " does not contain 'c3.fs.nodename' system metadata")
+      }
+    }
+
     if(isDir){
-      new C3DirectoryImpl(this, resource.address, resource.systemMetadata.getOrElse("c3.fs.nodename", ""), name, metadata)
+      new C3DirectoryImpl(this, resource.address, metadata, name, fullname)
     }else{
-      new C3FileImpl
+      new C3FileImpl(this, resource.address, metadata, name, fullname)
     }
   }
 
   override def addResource(meta:Map[String, String], data:DataStream):String = {
+    addDataInternal(resourceRequestUri, meta, data)
+  }
 
-    val method = new PostMethod(url)
+  def addFile(fullname:String, meta:Map[String, String], data:DataStream):String = {
+    val relativeUrl = fileRequestUri + fullname
 
-    addAuthHeaders(method, resourceRequestUri)
+    addDataInternal(relativeUrl, meta, data)
+  }
+
+  private def addDataInternal(relativeUrl:String, meta:Map[String, String], data:DataStream):String = {
+
+    val method = createPostMethod(relativeUrl)
 
     method.setRequestEntity(new MultipartRequestEntity(createPartsArray(meta, data), method.getParams))
 
-    try{
-      val status = httpClient.executeMethod(method)
+    executeMethod(method, status => {
       status match {
         case HttpStatus.SC_CREATED => {
 
           val xml = XML.load(method.getResponseBodyAsStream)
 
-          ((xml \\ "uploaded")(0) \ "@address" text)
+          val uploadedTags = (xml \ "uploaded")
+
+          if (uploadedTags.size > 0){
+            ((uploadedTags(0)) \ "@address").text
+          }else{
+            null
+          }
         }
         case _ => handleError(status, method); null
       }
-    }finally {
-      method.releaseConnection()
-    }
+    })
+  }
+
+  def addDirectory(fullname:String){
+    val method = createPostMethod(fileRequestUri + fullname)
+
+    method.addRequestHeader(new Header("x-c3-nodetype", "directory"))
+
+    executeMethod(method, status => {
+      status match {
+        case HttpStatus.SC_CREATED => Unit
+        case _ => handleError(status, method); null
+      }
+    })
   }
 
   def updateResource(address:String, meta:Map[String, String], data:DataStream):Int = {
 
-    val putMethod = new PutMethod(url + address)
+    val method = createPutMethod(resourceRequestUri + address)
 
-    addAuthHeaders(putMethod, resourceRequestUri + address)
+    method.setRequestEntity(new MultipartRequestEntity(createPartsArray(meta, data), method.getParams))
 
-    val parts = createPartsArray(meta, data)
-
-    putMethod.setRequestEntity(new MultipartRequestEntity(parts, putMethod.getParams))
-
-    try{
-      val status = httpClient.executeMethod(putMethod)
+    executeMethod(method, status => {
       status match {
         case HttpStatus.SC_OK => {
 
-          val xml = XML.load(putMethod.getResponseBodyAsStream)
+          val xml = XML.load(method.getResponseBodyAsStream)
 
           ((xml \\ "uploaded")(0) \ "@version" text).toInt
         }
-        case _ => handleError(status, putMethod); Int.MinValue
+        case _ => handleError(status, method); Int.MinValue
       }
-    }finally {
-      putMethod.releaseConnection()
-    }
-
+    })
   }
 
   override def deleteResource(address:String) {
-    val deleteMethod = new DeleteMethod(url + address)
+    val method = createDeleteMethod(resourceRequestUri + address)
 
-    addAuthHeaders(deleteMethod, resourceRequestUri + address)
-
-    try{
-      val status = httpClient.executeMethod(deleteMethod)
+    executeMethod(method, status => {
       status match{
-        case HttpStatus.SC_OK => null
-        case _ => handleError(status, deleteMethod)
+        case HttpStatus.SC_OK => Unit
+        case _ => handleError(status, method)
       }
-    }
+    })
   }
+
+  override def getData(ra:String):C3ByteChannel = getDataInternal(ra, 0)
 
   def getDataInternal(address:String, version:Int):C3ByteChannel = {
 
-
     val relativeUrl = if(version > 0){
-      url + address + "/" + version
+      resourceRequestUri + address + "/" + version
     }else{
-      url + address
+      resourceRequestUri + address
     }
 
-    val getMethod = new GetMethod(relativeUrl)
+    val method = createGetMethod(relativeUrl)
 
-    addAuthHeaders(getMethod, relativeUrl)
-
-    val status = httpClient.executeMethod(getMethod)
+    val status = httpClient.executeMethod(method)
     status match {
-      case HttpStatus.SC_OK => new C3ByteChannelImpl(getMethod)
+      case HttpStatus.SC_OK => new C3ByteChannelImpl(method)
       case _ =>
         try{
-          getMethod.releaseConnection()
+          method.releaseConnection()
         }catch{
           case e => //do nothing here
         }
-        handleError(status, getMethod); null
+        handleError(status, method); null
     }
+  }
+
+  protected def createPartsArray(meta:Map[String, String], data:DataStream):Array[Part] = {
+
+    var parts:List[Part] = meta.map(e => {
+      val part = new StringPart(e._1, e._2, "UTF-16")
+      part.setCharSet("UTF-8")
+      part
+    }).toList
+
+    if(data != null){
+      parts = data.createFilePart :: parts
+    }
+
+    parts.toArray
+  }
+
+  protected def handleError(status:Int, method:HttpMethodBase){
+
+    //    if(log.isDebugEnabled){
+    //      log.debug("Response is not ok: {}", method.getResponseBodyAsString(1024))
+    //    }
+
+    val contentType = method.getResponseHeader("Content-Type").getValue
+
+    if(contentType.startsWith("application/xml")){
+      val xml = XML.load(method.getResponseBodyAsStream)
+
+      val errorTag = (xml \ "error")(0)
+
+      val message = ((errorTag \ "message")(0)).text
+
+      val exception = ((errorTag \ "exception")(0)).text
+
+      if(exception.length() > 0){
+        log.error("Failed to execute request, status " + status +", stacktrace:\n" + exception)
+      }
+
+      throw new C3AccessException(message, status)
+    }else{
+
+      val reader = new InputStreamReader(method.getResponseBodyAsStream, "UTF-8")
+
+      val BUFFER_SIZE = 2048
+
+      val buffer = CharBuffer.allocate(BUFFER_SIZE)
+
+      reader.read(buffer)
+
+      log.error("Failed to execute method, server output: {}", buffer.toString)
+
+      reader.close()
+
+      throw new C3AccessException(("Filed to execute method, http status is " + status).asInstanceOf[String], status)
+    }
+  }
+
+  private def createGetMethod(relativeUrl:String, metadata:Boolean = false):HttpMethodBase = {
+    val method =
+      if(metadata)
+        new GetMethod(host + relativeUrl + "?metadata")
+      else
+        new GetMethod(host + relativeUrl)
+
+    addAuthHeaders(method, relativeUrl)
+
+    method
+  }
+
+  private def createPostMethod(relativeUrl:String):PostMethod = {
+    val method = new PostMethod(host + relativeUrl)
+    addAuthHeaders(method, relativeUrl)
+    method
+  }
+
+  private def createPutMethod(relativeUrl:String):PutMethod = {
+    val method = new PutMethod(host + relativeUrl)
+    addAuthHeaders(method, relativeUrl)
+    method
+  }
+
+  private def createDeleteMethod(relativeUrl:String):HttpMethodBase = {
+
+    val method = new DeleteMethod(host + relativeUrl)
+
+    addAuthHeaders(method, relativeUrl)
+
+    method
   }
 
   /**
    * @param relativeUrl url without hostname, i.e. /rest/resource/<address>
    */
-  protected def addAuthHeaders(method:HttpMethodBase, relativeUrl:String){
+  private def addAuthHeaders(method:HttpMethodBase, relativeUrl:String) {
     if(domain != "anonymous"){
 
       val dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z")
@@ -184,7 +281,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
 
       val hash = hmac(key, hashBase)
 
-      log.debug("Calculated hash {} for input parameters url:{} domain:{} date:{} ", Array(hash, relativeUrl, domain, dateString))
+      log.debug("Calculated hash {} for input parameters: {} ", hash,  Array(relativeUrl, domain, dateString))
 
       val header = new Header("x-c3-sign", hash)
       method.addRequestHeader(header)
@@ -197,7 +294,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     }
   }
 
-  protected def hmac(key:String, input:String):String = {
+  private def hmac(key:String, input:String):String = {
 
     val mac = Mac.getInstance("HmacSHA256")
 
@@ -219,39 +316,13 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     hexString.toString()
   }
 
-  protected def createPartsArray(meta:Map[String, String], data:DataStream):Array[Part] = {
-
-    var parts:List[Part] = meta.map(e => {
-      val part = new StringPart(e._1, e._2, "UTF-16")
-      part.setCharSet("UTF-8")
-      part
-    }).toList
-
-    if(data != null){
-      parts = data.createFilePart :: parts
-    }
-
-    parts.toArray
-  }
-
-  protected def handleError(status:Int, method:HttpMethodBase){
-
-    if(log.isDebugEnabled){
-      log.debug("Response is not ok: {}", method.getResponseBodyAsString(1024))
-    }
+  private def executeMethod[T](method:HttpMethodBase, f:Int => T):T = {
 
     try{
-      val xml = XML.load(method.getResponseBodyAsStream)
-
-      val errorTag = (xml \ "error")(0)
-
-      val message = ((errorTag \ "message")(0)).text
-
-      throw new C3AccessException(message, status)
-
-    }catch{
-      case e:C3AccessException => throw e //rethrow it!
-      case e => throw new C3AccessException(("Filed to execute method, http status is " + status).asInstanceOf[String], e, status)
+      val status = httpClient.executeMethod(method)
+      f(status)
+    }finally{
+      method.releaseConnection()
     }
   }
 }

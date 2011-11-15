@@ -33,16 +33,23 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
   }
 
   def this(system:C3SystemImpl, address:String, _name:String, _fullname:String) =
-    this(system, address, _name, _fullname)
+    this(system, address, null, _name, _fullname, null)
 
-  def this(system:C3SystemImpl, address:String, _name:String, _fullname:String) = this(system, address, null, _name, _fullname, null)
+  def this(system:C3SystemImpl, address:String, xml:NodeSeq, _name:String, _fullname:String) = this(system, address, xml, _name, _fullname, null)
 
   override def children:List[C3FileSystemNode] = preloadDir{_children}
 
-  override def createDirectory(name:String):C3Directory = null
+  override def createDirectory(name:String){
+
+    system.addDirectory(fullname + "/" + name)
+    
+    directoryLoaded = false
+  }
 
   override def createFile(name:String, meta:Map[String, String], data:DataStream){
-    
+    system.addFile(fullname + "/" + name, meta, data)
+
+    directoryLoaded = false
   }
 
   override def update(meta:Map[String, String], data:DataStream){
@@ -93,6 +100,10 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
     directoryLoaded = true
   }
 
+  def markDirty() {
+    directoryLoaded = false
+  }
+
   protected def preloadDir[T](value: => T):T = {
     if(!directoryLoaded){
 
@@ -100,12 +111,9 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
 
       val channel = system.getData(address)
 
-      try{
-        val xml = XML.load(Channels.newReader(channel, "UTF-8"))
-        updateFieldsFromDirectoryXml(xml)
-      }finally{
-        channel.close()
-      }
+      val xml = XML.load(Channels.newReader(channel, "UTF-8"))
+      updateFieldsFromDirectoryXml(xml)
+
 
     }
     value

@@ -29,6 +29,13 @@
             <version>1.6.1</version>
         </dependency>
 
+        <!-- Redirect for apache commons http-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+
         <dependency>
             <groupId>commons-httpclient</groupId>
             <artifactId>commons-httpclient</artifactId>

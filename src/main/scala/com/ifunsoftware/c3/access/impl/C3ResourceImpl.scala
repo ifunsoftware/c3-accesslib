@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
  * @author Mikhail Malygin
  */
 
-class C3ResourceImpl(val system:C3SystemImpl, val address:String, val xml:NodeSeq) extends C3Resource{
+class C3ResourceImpl(val system:C3SystemImpl, var _address:String, val xml:NodeSeq) extends C3Resource{
 
   private val log = C3ResourceImpl.log
 
@@ -35,6 +35,8 @@ class C3ResourceImpl(val system:C3SystemImpl, val address:String, val xml:NodeSe
   }
 
   def this(system:C3SystemImpl, address:String) = this(system, address, null)
+
+  override def address:String = _address
 
   override def date:Date = preload{_date}
 
@@ -83,6 +85,8 @@ class C3ResourceImpl(val system:C3SystemImpl, val address:String, val xml:NodeSe
   private def updateFieldsFromXmlDescription(xmlDescription:NodeSeq) {
     try{
       val resourceTag = (xmlDescription \ "resource") (0)
+
+      _address = (resourceTag \ "@address").text
 
       _date = ISODateTimeFormat.dateTime().parseDateTime((resourceTag \ "@createDate").text).toDate
 

@@ -13,7 +13,15 @@ import com.ifunsoftware.c3.access.{C3AccessException, DataStream, C3SystemFactor
 //@Ignore
 class C3IntegrationTest {
 
-  val C3_SYSTEM_ADDRESS = "http://localhost:8080"
+  //aphreet
+  //e14ebc01610f9273fbe12e118d662f37
+
+
+  val C3_SYSTEM_ADDRESS = "http://c3.aphreet.org:7373"
+
+  val C3_DOMAIN = "aphreet"
+
+  val C3_KEY = "e14ebc01610f9273fbe12e118d662f37"
   
   @Test
   def testResourceCRUD() {
@@ -25,13 +33,21 @@ class C3IntegrationTest {
     checkResourceDelete(address)
   }
 
+  def createSystem() = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS, C3_DOMAIN, C3_KEY)
+
+  //@Test
+  def testDelete(){
+    val system = createSystem()
+    system.deleteResource("ZnZCFfW6-Z5q7-AVqF-u1UPcVkp-5S5NJXgv-fbb6")
+  }
+
   def checkResourceAdd:String = {
 
     val expectedContent = "Preveddd!\njhkjh"
 
     val meta = Map("my.meta" -> "value0")
 
-    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
+    val system = createSystem()
 
     val address = system.addResource(meta, DataStream(expectedContent))
 
@@ -52,7 +68,7 @@ class C3IntegrationTest {
 
     val newMeta = Map("c3.int.test" -> "value4", "c3.int.test2" -> "value5")
 
-    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
+    val system = createSystem()
 
     val resource = system.getResource(address)
 
@@ -69,16 +85,12 @@ class C3IntegrationTest {
 
   def checkResourceDelete(address:String) {
 
-    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
+    val system = createSystem()
 
     system.deleteResource(address)
 
-    val resource = system.getResource(address)
-    
-    assertEquals("C3ResourceImpl[address=" + address + "]", resource.toString)
-
     try{
-      resource.metadata
+      system.getResource(address)
       fail("Resource can't be loaded after delete")
     }catch{
       case e:C3AccessException => {

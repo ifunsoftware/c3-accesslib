@@ -32,7 +32,7 @@ class C3DirectoryImplTestCase {
 
     val xml = XML.loadString(xmlString)
 
-    val directory = new C3DirectoryImpl(null, "287f53c2-59c7-4ad5-a228-0abe49359844-f579", "anonymous", "/anonymous", xml)
+    val directory = new C3DirectoryImpl(null, "287f53c2-59c7-4ad5-a228-0abe49359844-f579", null, "anonymous", "/anonymous", xml)
 
     assertEquals(List("directory", "directory_2", "directory_3", "test", "java.log", "zzz.log"), directory.children.map(_.name).toList)
 
