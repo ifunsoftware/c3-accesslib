@@ -5,6 +5,7 @@ import org.apache.commons.httpclient.HttpMethodBase
 import java.nio.channels.Channels
 import java.io.BufferedInputStream
 import java.nio.ByteBuffer
+import org.slf4j.LoggerFactory
 
 /**
  * Copyright iFunSoftware 2011
@@ -13,9 +14,15 @@ import java.nio.ByteBuffer
 
 class C3ByteChannelImpl(val method:HttpMethodBase) extends C3ByteChannel {
 
+  private val log = C3ByteChannelImpl.log
+
   private var open = true
 
   private val inChannel = Channels.newChannel(new BufferedInputStream(method.getResponseBodyAsStream))
+
+  {
+    log.debug("Channel created {}", this)
+  }
 
   override def read(buffer:ByteBuffer):Int = inChannel.read(buffer)
 
@@ -28,7 +35,14 @@ class C3ByteChannelImpl(val method:HttpMethodBase) extends C3ByteChannel {
       open = false
       inChannel.close()
     }finally {
+      log.debug("Channel closed {}", this)
       method.releaseConnection()
     }
   }
+}
+
+object C3ByteChannelImpl{
+
+  val log = LoggerFactory.getLogger(classOf[C3ByteChannelImpl])
+  
 }

@@ -6,15 +6,14 @@ import com.ifunsoftware.c3.access.{C3Resource, DataStream}
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
  */
-trait C3FileSystemNode {
+trait C3FileSystemNode extends C3Resource{
 
   def name:String
 
-  def metadata:Map[String, String]
-
+  def fullname:String
 }
 
-trait C3File extends C3FileSystemNode with C3Resource {
+trait C3File extends C3FileSystemNode{
 
 }
 

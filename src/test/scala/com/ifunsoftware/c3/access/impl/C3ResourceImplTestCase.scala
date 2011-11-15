@@ -56,7 +56,7 @@ class C3ResourceImplTestCase {
   </resource>
 </p:response>"""))
 
-    val resource = new C3ResourceImpl(null, xml)
+    val resource = new C3ResourceImpl(null, "be7300eb-c518-40b1-a384-a4dc49359844-f579", xml)
 
     assertEquals("be7300eb-c518-40b1-a384-a4dc49359844-f579", resource.address)
 

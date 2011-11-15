@@ -1,9 +1,10 @@
 package com.ifunsoftware.c3.access.integration
 
-import java.io.FileOutputStream
-import org.junit.{Ignore, Test}
+import org.junit.Test
 import org.junit.Assert._
-import com.ifunsoftware.c3.access.{DataStream, C3SystemFactory}
+import java.io.BufferedReader
+import java.nio.channels.{ReadableByteChannel, Channels}
+import com.ifunsoftware.c3.access.{C3AccessException, DataStream, C3SystemFactory}
 
 /**
  * Copyright iFunSoftware 2011
@@ -13,78 +14,114 @@ import com.ifunsoftware.c3.access.{DataStream, C3SystemFactory}
 class C3IntegrationTest {
 
   val C3_SYSTEM_ADDRESS = "http://localhost:8080"
-
+  
   @Test
-  def testResourceGet() {
+  def testResourceCRUD() {
 
-    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
+    val address = checkResourceAdd
 
-    val resource = system.getResource("3EY9anan-2HKa-lGOz-ubI1mSO5-5S5NJXgv-fbb6")
+    checkResourceUpdate(address)
 
-    println(resource)
-
-    val version = resource.versions.head
-
-    val dataChannel = version.getData
-
-    val fileChannel = new FileOutputStream("file.out").getChannel
-
-    try{
-      fileChannel.transferFrom(dataChannel, 0, dataChannel.length)
-    }finally {
-      dataChannel.close()
-      fileChannel.close()
-    }
+    checkResourceDelete(address)
   }
 
-  @Test
-  def testResourceUpdate() {
+  def checkResourceAdd:String = {
+
+    val expectedContent = "Preveddd!\njhkjh"
+
+    val meta = Map("my.meta" -> "value0")
 
     val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
 
-    val resource = system.getResource("3EY9anan-2HKa-lGOz-ubI1mSO5-5S5NJXgv-fbb6")
+    val address = system.addResource(meta, DataStream(expectedContent))
 
-    resource.update(Map("c3.int.test" -> "value4", "c3.int.test2" -> "value5"), DataStream("Preved!".getBytes("UTF-8")))
+    val resource = system.getResource(address)
 
-    val resource2 = system.getResource("3EY9anan-2HKa-lGOz-ubI1mSO5-5S5NJXgv-fbb6")
+    checkMetadataContains(meta, resource.metadata)
+    
+    val dataChannel = system.getData(address)
 
-    println(resource2.metadata)
+    checkContentMatch(expectedContent, dataChannel)
+
+    address
+  }
+
+  def checkResourceUpdate(address:String) {
+
+    val expectedContent = "Preved!"
+
+    val newMeta = Map("c3.int.test" -> "value4", "c3.int.test2" -> "value5")
+
+    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
+
+    val resource = system.getResource(address)
+
+    resource.update(newMeta, DataStream(expectedContent))
+
+    val resource2 = system.getResource(address)
+
+    checkMetadataContains(newMeta, resource.metadata)
 
     val version = resource2.versions.tail.head
 
     val dataChannel = version.getData
 
-    val fileChannel = new FileOutputStream("file.out").getChannel
-
-    try{
-      fileChannel.transferFrom(dataChannel, 0, dataChannel.length)
-    }finally {
-      dataChannel.close()
-      fileChannel.close()
-    }
+    checkContentMatch(expectedContent, dataChannel)
   }
 
-  @Test
-  def testResourceAdd() {
+  def checkResourceDelete(address:String) {
 
     val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
 
-    val address = system.addResource(Map("my.meta" -> "value0"), DataStream("Preveddd!\njhkjh".getBytes("UTF-8")))
+    system.deleteResource(address)
 
     val resource = system.getResource(address)
-
-    assertEquals("value0", resource.metadata.getOrElse("my.meta", ""))
     
-    val dataChannel = system.getData(address)
-
-    val fileChannel = new FileOutputStream("file.out").getChannel
+    assertEquals("C3ResourceImpl[address=" + address + "]", resource.toString)
 
     try{
-      fileChannel.transferFrom(dataChannel, 0, dataChannel.length)
-    }finally {
-      dataChannel.close()
-      fileChannel.close()
+      resource.metadata
+      fail("Resource can't be loaded after delete")
+    }catch{
+      case e:C3AccessException => {
+        assertEquals(404, e.code)
+        assertEquals("Resource not found", e.message)
+      }
+      case e => fail("Expected C3AccessException")
     }
+  }
 
+  def checkContentMatch(expected:String, actual:ReadableByteChannel) {
+    val reader = Channels.newReader(actual, "UTF-8")
+
+    val bufferedReader = new BufferedReader(reader)
+
+    try{
+      val builder = new StringBuilder
+
+      var line = bufferedReader.readLine
+
+      while(line != null){
+        builder.append(line)
+        line = bufferedReader.readLine
+        if(line != null){
+          builder.append("\n")
+        }
+      }
+
+      val content = builder.toString()
+
+      assertEquals(expected, content)
+
+    }finally {
+      bufferedReader.close()
+    }
+  }
+
+  def checkMetadataContains(expected:Map[String, String], actual:Map[String, String]){
+
+    for((key, value) <- expected){
+      assertEquals(value, actual.getOrElse(key, ""))
+    }
   }
 }

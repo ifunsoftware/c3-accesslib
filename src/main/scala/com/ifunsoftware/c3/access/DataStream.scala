@@ -21,4 +21,5 @@ object DataStream{
 
   def apply(array:Array[Byte]):DataStream = new ByteArrayDataStream(array)
 
+  def apply(string:String):DataStream = new ByteArrayDataStream(string.getBytes("UTF-8"))
 }

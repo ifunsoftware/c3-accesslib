@@ -5,15 +5,16 @@ import xml.NodeSeq
 import org.joda.time.format.ISODateTimeFormat
 import collection.mutable.ArrayBuffer
 import com.ifunsoftware.c3.access.{DataStream, C3AccessException, C3Version, C3Resource}
+import org.slf4j.LoggerFactory
 
 /**
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
  */
 
-class C3ResourceImpl(val system:C3SystemImpl, val xml:NodeSeq) extends C3Resource{
+class C3ResourceImpl(val system:C3SystemImpl, val address:String, val xml:NodeSeq) extends C3Resource{
 
-  private var _address:String = null
+  private val log = C3ResourceImpl.log
 
   private var _date:Date = null
 
@@ -25,21 +26,25 @@ class C3ResourceImpl(val system:C3SystemImpl, val xml:NodeSeq) extends C3Resourc
 
   private var _versions:List[C3Version] = null
 
+  protected var loaded = false
+
   {
-    updateFromXmlDescription(xml)
+    if(xml != null){
+      updateFieldsFromXmlDescription(xml)
+    }
   }
 
-  override def address:String = _address
+  def this(system:C3SystemImpl, address:String) = this(system, address, null)
 
-  override def date:Date = _date
+  override def date:Date = preload{_date}
 
-  override def tracksVersions:Boolean = _tracksVersions
+  override def tracksVersions:Boolean = preload{_tracksVersions}
 
-  override def metadata:Map[String, String] = _metadata
+  override def metadata:Map[String, String] = preload{_metadata}
 
-  override def systemMetadata:Map[String,  String] = _systemMetadata
+  override def systemMetadata:Map[String,  String] = preload{_systemMetadata}
 
-  override def versions:List[C3Version] = _versions
+  override def versions:List[C3Version] = preload{_versions}
 
 
   override def update(meta:Map[String, String], data:DataStream) {
@@ -59,22 +64,24 @@ class C3ResourceImpl(val system:C3SystemImpl, val xml:NodeSeq) extends C3Resourc
 
     val builder = new StringBuilder
 
-    builder.append("C3ResourceImpl[address=").append(address)
-      .append(", date=").append(date.getTime)
-      .append(", trackVersions=").append(tracksVersions)
-      .append(", meta=").append(metadata)
-      .append(", sysmeta=").append(systemMetadata)
-      .append(", versions=").append(versions)
-      .append("]")
+    if(loaded){
+      builder.append("C3ResourceImpl[address=").append(address)
+        .append(", date=").append(date.getTime)
+        .append(", trackVersions=").append(tracksVersions)
+        .append(", meta=").append(metadata)
+        .append(", sysmeta=").append(systemMetadata)
+        .append(", versions=").append(versions)
+        .append("]")
+    }else{
+      builder.append("C3ResourceImpl[address=").append(address).append("]")
+    }
 
     builder.toString()
   }
 
-  private def updateFromXmlDescription(xmlDescription:NodeSeq) {
+  private def updateFieldsFromXmlDescription(xmlDescription:NodeSeq) {
     try{
       val resourceTag = (xmlDescription \ "resource") (0)
-
-      _address = (resourceTag \ "@address").text
 
       _date = ISODateTimeFormat.dateTime().parseDateTime((resourceTag \ "@createDate").text).toDate
 
@@ -108,12 +115,30 @@ class C3ResourceImpl(val system:C3SystemImpl, val xml:NodeSeq) extends C3Resourc
       }
 
       _versions = array.toList
+
+      loaded = true
     }catch{
       case e => throw new C3AccessException("Failed to parse resource xml", e)
     }
   }
 
+  protected def preload[T](value: => T):T = {
+    if(!loaded){
+
+      log.debug("Resource {} is not loaded yet, loading...", address)
+
+      updateFieldsFromXmlDescription(system.getMetadata(address))
+    }
+    value
+  }
+
   private def parseMetadata(metadataTag:NodeSeq):Map[String,  String] = {
     (metadataTag \ "element").map(e => ((e \ "@key").text, (e \ "value")(0).text)).toMap
   }
+}
+
+object C3ResourceImpl{
+
+  val log = LoggerFactory.getLogger(classOf[C3ResourceImpl])
+  
 }

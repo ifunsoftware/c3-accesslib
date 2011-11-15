@@ -5,11 +5,11 @@ import java.util.Date
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.Mac
 import org.apache.commons.httpclient.{HttpStatus, HttpClient, Header, HttpMethodBase}
-import xml.XML
 import org.slf4j.LoggerFactory
 import com.ifunsoftware.c3.access._
 import org.apache.commons.httpclient.methods.multipart.{MultipartRequestEntity, StringPart, Part}
 import org.apache.commons.httpclient.methods.{DeleteMethod, PostMethod, PutMethod, GetMethod}
+import xml.{NodeSeq, XML}
 
 /**
  * Copyright iFunSoftware 2011
@@ -30,7 +30,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     getDataInternal(ra, 0)
   }
 
-  override def getResource(ra:String):C3Resource = {
+  def getMetadata(ra:String):NodeSeq = {
     val getMethod = new GetMethod(url + ra + "?metadata")
 
     addAuthHeaders(getMethod, requestUri + ra)
@@ -39,21 +39,16 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
       val status = httpClient.executeMethod(getMethod)
       status match {
         case HttpStatus.SC_OK => {
-
-          val xml = XML.load(getMethod.getResponseBodyAsStream)
-
-          new C3ResourceImpl(this, xml)
+          XML.load(getMethod.getResponseBodyAsStream)
         }
-        case _ =>
-          if(log.isDebugEnabled){
-            log.debug("Response is not ok: {}", getMethod.getResponseBodyAsString(1024))
-          }
-          throw new C3AccessException("Failed to get resource metadata, error code is " + status )
+        case _ => handleError(status, getMethod); null
       }
     }finally{
       getMethod.releaseConnection()
     }
   }
+
+  override def getResource(ra:String):C3Resource = new C3ResourceImpl(this, ra)
 
   override def addResource(meta:Map[String, String], data:DataStream):String = {
 
@@ -72,11 +67,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
 
           ((xml \\ "uploaded")(0) \ "@address" text)
         }
-        case _ =>
-          if(log.isDebugEnabled){
-            log.debug("Response is not ok: {}", method.getResponseBodyAsString(1024))
-          }
-          throw new C3AccessException(("Filed to post resource, code " + status).asInstanceOf[String])
+        case _ => handleError(status, method); null
       }
     }finally {
       method.releaseConnection()
@@ -102,11 +93,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
 
           ((xml \\ "uploaded")(0) \ "@version" text).toInt
         }
-        case _ =>
-          if(log.isDebugEnabled){
-            log.debug("Response is not ok: {}", putMethod.getResponseBodyAsString(1024))
-          }
-          throw new C3AccessException(("Filed to post resource, code " + status).asInstanceOf[String])
+        case _ => handleError(status, putMethod); Int.MinValue
       }
     }finally {
       putMethod.releaseConnection()
@@ -123,11 +110,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
       val status = httpClient.executeMethod(deleteMethod)
       status match{
         case HttpStatus.SC_OK => null
-        case _ =>
-          if(log.isDebugEnabled){
-            log.debug("Response is not ok: {}", deleteMethod.getResponseBodyAsString(1024))
-          }
-          throw new C3AccessException(("Failed to delete resource, code " + status).asInstanceOf[String])
+        case _ => handleError(status, deleteMethod)
       }
     }
   }
@@ -147,16 +130,14 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
 
     val status = httpClient.executeMethod(getMethod)
     status match {
-      case HttpStatus.SC_OK => {
-        new C3ByteChannelImpl(getMethod)
-      }
+      case HttpStatus.SC_OK => new C3ByteChannelImpl(getMethod)
       case _ =>
         try{
           getMethod.releaseConnection()
         }catch{
           case e => //do nothing here
         }
-        throw new C3AccessException("Failed to get resource metadata, error code is " + status )
+        handleError(status, getMethod); null
     }
   }
 
@@ -222,5 +203,26 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     }
 
     parts.toArray
+  }
+
+  protected def handleError(status:Int, method:HttpMethodBase){
+
+    if(log.isDebugEnabled){
+      log.debug("Response is not ok: {}", method.getResponseBodyAsString(1024))
+    }
+
+    try{
+      val xml = XML.load(method.getResponseBodyAsStream)
+
+      val errorTag = (xml \ "error")(0)
+
+      val message = ((errorTag \ "message")(0)).text
+
+      throw new C3AccessException(message, status)
+
+    }catch{
+      case e:C3AccessException => throw e //rethrow it!
+      case e => throw new C3AccessException(("Filed to execute method, http status is " + status).asInstanceOf[String], e, status)
+    }
   }
 }
