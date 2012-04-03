@@ -76,6 +76,17 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     }
   }
 
+  def deleteFile(name:String){
+    val method = createDeleteMethod(fileRequestUri + name)
+
+    executeMethod(method, status => {
+      status match{
+        case HttpStatus.SC_OK => Unit
+        case _ => handleError(status, method)
+      }
+    })
+  }
+
   override def addResource(meta:Map[String, String], data:DataStream):String = {
     addDataInternal(resourceRequestUri, meta, data)
   }

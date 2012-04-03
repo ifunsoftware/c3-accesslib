@@ -1,8 +1,8 @@
 package com.ifunsoftware.c3.access.fs.impl
 
-import com.ifunsoftware.c3.access.fs.C3FileSystemNode
 import com.ifunsoftware.c3.access.impl.{C3ResourceImpl, C3SystemImpl}
 import xml.NodeSeq
+import com.ifunsoftware.c3.access.fs.{C3File, C3Directory, C3FileSystemNode}
 
 /**
  * Copyright iFunSoftware 2011
@@ -25,4 +25,8 @@ abstract class C3FileSystemNodeImpl(override val system:C3SystemImpl,
   override def move(path:String) {
     system.moveFile(fullname, path)
   }
+
+  def asDirectory:C3Directory = throw new IllegalArgumentException("This node is not a directory")
+
+  def asFile:C3File = throw new IllegalArgumentException("This node is not a file")
 }

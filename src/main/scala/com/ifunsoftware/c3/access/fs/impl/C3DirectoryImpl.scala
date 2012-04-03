@@ -5,8 +5,8 @@ import com.ifunsoftware.c3.access.DataStream
 import collection.mutable.ArrayBuffer
 import xml.{XML, NodeSeq}
 import java.nio.channels.Channels
-import com.ifunsoftware.c3.access.fs.{C3FileSystemNode, C3Directory}
 import org.slf4j.LoggerFactory
+import com.ifunsoftware.c3.access.fs.{C3File, C3FileSystemNode, C3Directory}
 
 /**
  * Copyright iFunSoftware 2011
@@ -45,6 +45,10 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
     
     directoryLoaded = false
   }
+
+  def isDirectory:Boolean = true
+
+  override def asDirectory:C3Directory = this
 
   override def createFile(name:String, meta:Map[String, String], data:DataStream){
     system.addFile(fullname + "/" + name, meta, data)
@@ -100,6 +104,10 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
     directoryLoaded = true
   }
 
+  def getChild(name:String):Option[C3FileSystemNode] = {
+    children.filter(_.name == name).headOption
+  }
+  
   def markDirty() {
     directoryLoaded = false
   }

@@ -13,6 +13,12 @@ trait C3FileSystemNode extends C3Resource{
   def fullname:String
 
   def move(path:String)
+  
+  def isDirectory:Boolean
+
+  def asDirectory:C3Directory
+
+  def asFile:C3File
 }
 
 trait C3File extends C3FileSystemNode{
@@ -28,5 +34,7 @@ trait C3Directory extends C3FileSystemNode {
   def createFile(name:String, meta:Map[String, String], data:DataStream)
 
   def markDirty()
+
+  def getChild(name:String):Option[C3FileSystemNode]
   
 }

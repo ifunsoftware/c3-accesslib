@@ -18,4 +18,6 @@ trait C3System {
   def getFile(name:String):C3FileSystemNode
 
   def deleteResource(ra:String)
+
+  def deleteFile(name:String)
 }
