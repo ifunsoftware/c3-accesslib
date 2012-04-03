@@ -39,6 +39,14 @@ class C3ByteChannelImpl(val method:HttpMethodBase) extends C3ByteChannel {
       method.releaseConnection()
     }
   }
+  
+  override def readContentAsString:String = {
+    val buffer = ByteBuffer.allocate(length.toInt)
+    read(buffer)
+    val content = new String(buffer.array(), "UTF-8")
+    close()
+    content
+  }
 }
 
 object C3ByteChannelImpl{

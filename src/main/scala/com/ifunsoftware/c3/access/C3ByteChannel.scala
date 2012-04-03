@@ -10,5 +10,7 @@ import java.nio.channels.ReadableByteChannel
 trait C3ByteChannel extends ReadableByteChannel {
 
   def length:Long
+
+  def readContentAsString:String
   
 }
