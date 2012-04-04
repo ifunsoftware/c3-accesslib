@@ -14,6 +14,7 @@ import java.io.InputStreamReader
 import java.nio.CharBuffer
 import org.apache.commons.httpclient.methods._
 import org.apache.commons.httpclient._
+import java.net.URLEncoder
 
 /**
  * Copyright iFunSoftware 2011
@@ -27,6 +28,8 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
   val resourceRequestUri = "/rest/resource/"
 
   val fileRequestUri = "/rest/fs"
+
+  val searchRequestUri = "/rest/search/"
 
   val httpClient = new HttpClient
 
@@ -133,6 +136,20 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
         case _ => handleError(status, method); null
       }
     })
+  }
+
+  override def search(query:String):List[SearchResultEntry] = {
+    val method= createGetMethod(searchRequestUri + URLEncoder.encode(query, "UTF-8"))
+
+    executeMethod(method, status => {
+      status match {
+        case HttpStatus.SC_OK => {
+          SearchResultEntryParser.parse(XML.load(method.getResponseBodyAsStream))
+        }
+        case _ => handleError(status, method); List()
+      }
+    })
+
   }
 
   def updateResource(address:String, meta:Map[String, String], data:DataStream):Int = {

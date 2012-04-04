@@ -20,4 +20,6 @@ trait C3System {
   def deleteResource(ra:String)
 
   def deleteFile(name:String)
+  
+  def search(query:String):List[SearchResultEntry]
 }
