@@ -206,6 +206,28 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
         handleError(status, method); null
     }
   }
+  
+  def getDataAsStreamInternal(address:String, version:Int):C3InputStream = {
+    val relativeUrl = if(version > 0){
+      resourceRequestUri + address + "/" + version
+    }else{
+      resourceRequestUri + address
+    }
+
+    val method = createGetMethod(relativeUrl)
+
+    val status = httpClient.executeMethod(method)
+    status match {
+      case HttpStatus.SC_OK => new C3InputStreamImpl(method)
+      case _ =>
+        try{
+          method.releaseConnection()
+        }catch{
+          case e => //do nothing here
+        }
+        handleError(status, method); null
+    }
+  }
 
   def moveFile(path:String, newPath:String) {
 
@@ -240,10 +262,6 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
 
   protected def handleError(status:Int, method:HttpMethodBase){
 
-    //    if(log.isDebugEnabled){
-    //      log.debug("Response is not ok: {}", method.getResponseBodyAsString(1024))
-    //    }
-
     val contentType = method.getResponseHeader("Content-Type").getValue
 
     if(contentType.startsWith("application/xml")){
@@ -270,7 +288,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
 
       reader.read(buffer)
 
-      log.error("Failed to execute method, server output: {}", buffer.toString)
+      log.error("Failed to execute request to {}, server output: {}", method.getURI.toString, buffer.toString)
 
       reader.close()
 

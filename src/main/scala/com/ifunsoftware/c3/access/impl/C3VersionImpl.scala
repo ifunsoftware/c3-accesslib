@@ -1,7 +1,7 @@
 package com.ifunsoftware.c3.access.impl
 
 import java.util.Date
-import com.ifunsoftware.c3.access.{C3ByteChannel, C3Version}
+import com.ifunsoftware.c3.access.{C3InputStream, C3ByteChannel, C3Version}
 
 /**
  * Copyright iFunSoftware 2011
@@ -19,6 +19,8 @@ class C3VersionImpl(val system:C3SystemImpl,
   def metadata:Map[String, String] = _metadata
 
   def getData:C3ByteChannel = system.getDataInternal(resource.address, _number)
+
+  def getDataStream:C3InputStream = system.getDataAsStreamInternal(resource.address, _number)
 
   override def toString:String = {
     val builder = new StringBuilder

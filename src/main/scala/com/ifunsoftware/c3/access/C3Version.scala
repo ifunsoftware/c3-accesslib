@@ -15,4 +15,5 @@ trait C3Version {
 
   def getData:C3ByteChannel
 
+  def getDataStream:C3InputStream
 }
