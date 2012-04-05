@@ -11,7 +11,7 @@ trait C3System {
 
   def getData(ra:String):C3ByteChannel
 
-  def getResource(ra:String):C3Resource
+  def getResource(ra:String, metadata:List[String] = List()):C3Resource
 
   def addResource(meta:Map[String, String], data:DataStream):String
 

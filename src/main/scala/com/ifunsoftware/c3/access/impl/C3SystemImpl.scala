@@ -37,12 +37,17 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
   def getMetadataForName(name:String):NodeSeq = getMetadataInternal(fileRequestUri + name)
 
 
-  def getMetadataForAddress(ra:String):NodeSeq = getMetadataInternal(resourceRequestUri + ra)
+  def getMetadataForAddress(ra:String, extendedMeta:List[String] = List()):NodeSeq = getMetadataInternal(resourceRequestUri + ra, extendedMeta)
 
-
-  protected def getMetadataInternal(relativeUrl:String):NodeSeq = {
+  protected def getMetadataInternal(relativeUrl:String, extendedMeta:List[String] = List()):NodeSeq = {
 
     val method = createGetMethod(relativeUrl, true)
+    
+    if(!extendedMeta.isEmpty){
+      val header = new Header("x-c3-extmeta", extendedMeta.reduceLeft(_ + "," + _))
+      log.debug("Header value for extended meta {}", header.getValue)
+      method.addRequestHeader(header)
+    }
 
     executeMethod(method, status => {
       status match {
@@ -54,7 +59,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
     })
   }
 
-  override def getResource(ra:String):C3Resource = new C3ResourceImpl(this, ra, getMetadataForAddress(ra))
+  override def getResource(ra:String, metadata:List[String] = List()):C3Resource = new C3ResourceImpl(this, ra, getMetadataForAddress(ra, metadata))
 
 
   override def getFile(fullname:String):C3FileSystemNode = {
