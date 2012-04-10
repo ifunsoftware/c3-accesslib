@@ -16,13 +16,9 @@ class C3FileIntegrationTest {
   @Test
   def testFileSystemCRUD(){
 
-    val C3_SYSTEM_ADDRESS = "http://c3.aphreet.org:7373"
+    val C3_SYSTEM_ADDRESS = "http://localhost:7373"
 
-    val C3_DOMAIN = "aphreet"
-
-    val C3_KEY = "e14ebc01610f9273fbe12e118d662f37"
-
-    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS, C3_DOMAIN, C3_KEY)
+    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
 
     val node = system.getFile("/")
 

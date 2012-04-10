@@ -14,14 +14,15 @@ import java.io.InputStreamReader
 import java.nio.CharBuffer
 import org.apache.commons.httpclient.methods._
 import org.apache.commons.httpclient._
-import java.net.URLEncoder
+import java.net.{URL, URLEncoder}
+import params.HttpConnectionManagerParams
 
 /**
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
  */
 
-class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends C3System{
+class C3SystemImpl(val host:String,  val domain:String,  val key:String, val maxConnections:Int = 100) extends C3System{
 
   val log = LoggerFactory.getLogger(getClass)
 
@@ -31,7 +32,42 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String) extends
 
   val searchRequestUri = "/rest/search/"
 
-  val httpClient = new HttpClient
+  val httpClient = createHttpClient
+
+  private def createHttpClient:HttpClient = {
+
+    val hostConfiguration = getHostConfiguration
+    
+    val connectionParams = new HttpConnectionManagerParams()
+    connectionParams.setMaxConnectionsPerHost(hostConfiguration, maxConnections)
+    connectionParams.setMaxTotalConnections(maxConnections)
+    
+    val connectionManager = new MultiThreadedHttpConnectionManager
+    connectionManager.setParams(connectionParams)
+
+    val client = new HttpClient(connectionManager)
+    client.setHostConfiguration(hostConfiguration)
+
+    client
+  }
+  
+  private def getHostConfiguration:HostConfiguration = {
+    val url = new URL(host)
+
+    val port = if(url.getPort == -1){
+      url.getDefaultPort
+    }else{
+      url.getPort
+    }
+
+    val hostname = url.getHost
+    val protocol = url.getProtocol
+    
+    val hostConfiguration = new HostConfiguration()
+    hostConfiguration.setHost(hostname, port, protocol)
+
+    hostConfiguration
+  }
 
 
   def getMetadataForName(name:String):NodeSeq = getMetadataInternal(fileRequestUri + name)
