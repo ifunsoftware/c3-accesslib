@@ -22,7 +22,12 @@ import params.HttpConnectionManagerParams
  * @author Mikhail Malygin
  */
 
-class C3SystemImpl(val host:String,  val domain:String,  val key:String, val maxConnections:Int = 100) extends C3System{
+class C3SystemImpl(val host:String,
+                   val domain:String,
+                   val key:String,
+                   val maxConnections:Int = 100,
+                   val proxyHost:String = null,
+                   val proxyPort:Int = 0) extends C3System{
 
   val log = LoggerFactory.getLogger(getClass)
 
@@ -41,7 +46,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String, val max
     val connectionParams = new HttpConnectionManagerParams()
     connectionParams.setMaxConnectionsPerHost(hostConfiguration, maxConnections)
     connectionParams.setMaxTotalConnections(maxConnections)
-    
+
     val connectionManager = new MultiThreadedHttpConnectionManager
     connectionManager.setParams(connectionParams)
 
@@ -66,6 +71,10 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String, val max
     val hostConfiguration = new HostConfiguration()
     hostConfiguration.setHost(hostname, port, protocol)
 
+    if (proxyHost != null){
+      hostConfiguration.setProxy(proxyHost, proxyPort)
+    }
+
     hostConfiguration
   }
 
@@ -78,7 +87,7 @@ class C3SystemImpl(val host:String,  val domain:String,  val key:String, val max
   protected def getMetadataInternal(relativeUrl:String, extendedMeta:List[String] = List()):NodeSeq = {
 
     val method = createGetMethod(relativeUrl, true)
-    
+
     if(!extendedMeta.isEmpty){
       val header = new Header("x-c3-extmeta", extendedMeta.reduceLeft(_ + "," + _))
       log.debug("Header value for extended meta {}", header.getValue)
