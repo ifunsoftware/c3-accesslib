@@ -9,6 +9,10 @@ import impl.C3SystemImpl
 
 class C3SystemFactory {
 
+  def createSystem(host:String, domain:String, key:String, maxConnections:Int, proxyHost:String, proxyPort:Int):C3System = {
+    new C3SystemImpl(host, domain, key, maxConnections, proxyHost, proxyPort)
+  }
+
   def createSystem(host:String, domain:String, key:String):C3System = {
     new C3SystemImpl(host, domain, key)
   }
