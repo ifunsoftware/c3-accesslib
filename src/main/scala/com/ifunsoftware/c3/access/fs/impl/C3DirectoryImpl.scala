@@ -82,7 +82,10 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
       val childAddress = (nodeTag \ "@address").text
       val isFile = (nodeTag \ "@leaf").text == "true"
 
-      val childFullName = fullname + "/" + childName
+      val childFullName = (fullname match {
+        case "/" => ""
+        case s => s
+      }) + "/" + childName
 
       val child:C3FileSystemNode = if(isFile){
         new C3FileImpl(system, childAddress, childName, childFullName)
