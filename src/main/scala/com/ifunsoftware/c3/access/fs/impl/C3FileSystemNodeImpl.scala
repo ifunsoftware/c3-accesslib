@@ -20,7 +20,7 @@ abstract class C3FileSystemNodeImpl(override val system:C3SystemImpl,
 
   override def name:String = _name
 
-  override def fullname:String = _fullname
+  override def fullname: String = _fullname
 
   override def move(path:String) {
     system.moveFile(fullname, path)

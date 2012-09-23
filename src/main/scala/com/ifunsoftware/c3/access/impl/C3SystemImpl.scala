@@ -42,7 +42,7 @@ class C3SystemImpl(val host:String,
   private def createHttpClient:HttpClient = {
 
     val hostConfiguration = getHostConfiguration
-    
+
     val connectionParams = new HttpConnectionManagerParams()
     connectionParams.setMaxConnectionsPerHost(hostConfiguration, maxConnections)
     connectionParams.setMaxTotalConnections(maxConnections)
@@ -55,7 +55,7 @@ class C3SystemImpl(val host:String,
 
     client
   }
-  
+
   private def getHostConfiguration:HostConfiguration = {
     val url = new URL(host)
 
@@ -67,7 +67,7 @@ class C3SystemImpl(val host:String,
 
     val hostname = url.getHost
     val protocol = url.getProtocol
-    
+
     val hostConfiguration = new HostConfiguration()
     hostConfiguration.setHost(hostname, port, protocol)
 
@@ -86,7 +86,7 @@ class C3SystemImpl(val host:String,
 
   protected def getMetadataInternal(relativeUrl:String, extendedMeta:List[String] = List()):NodeSeq = {
 
-    val method = createGetMethod(relativeUrl, true)
+    val method = createGetMethod(relativeUrl, metadata = true)
 
     if(!extendedMeta.isEmpty){
       val header = new Header("x-c3-extmeta", extendedMeta.reduceLeft(_ + "," + _))
@@ -256,7 +256,7 @@ class C3SystemImpl(val host:String,
         handleError(status, method); null
     }
   }
-  
+
   def getDataAsStreamInternal(address:String, version:Int):C3InputStream = {
     val relativeUrl = if(version > 0){
       resourceRequestUri + address + "/" + version
@@ -379,21 +379,27 @@ class C3SystemImpl(val host:String,
     method
   }
 
+  def makeCleanUrl(url:String):String = {
+    url.replaceAll("/+", "/")
+  }
+
   /**
    * @param relativeUrl url without hostname, i.e. /rest/resource/<address>
    */
   private def addAuthHeaders(method:HttpMethodBase, relativeUrl:String) {
     if(domain != "anonymous"){
 
+      val cleanUrl = makeCleanUrl(relativeUrl)
+
       val dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z")
 
       val dateString = dateFormat.format(new Date())
 
-      val hashBase = relativeUrl + dateString + domain
+      val hashBase = cleanUrl + dateString + domain
 
       val hash = hmac(key, hashBase)
 
-      log.debug("Calculated hash {} for input parameters: {} ", hash,  Array(relativeUrl, domain, dateString))
+      log.debug("Calculated hash {} for input parameters: {} ", hash,  Array(cleanUrl, domain, dateString))
 
       val header = new Header("x-c3-sign", hash)
       method.addRequestHeader(header)

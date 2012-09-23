@@ -13,16 +13,12 @@ import org.junit.{Ignore, Test}
 @Ignore
 class C3IntegrationTest {
 
-  //aphreet
-  //e14ebc01610f9273fbe12e118d662f37
-
-
-  val C3_SYSTEM_ADDRESS = "http://c3.aphreet.org:7373"
+  val C3_SYSTEM_ADDRESS = "http://node0.c3.ifunsoftware.com"
 
   val C3_DOMAIN = "aphreet"
 
   val C3_KEY = "e14ebc01610f9273fbe12e118d662f37"
-  
+
   @Test
   def testResourceCRUD() {
 
