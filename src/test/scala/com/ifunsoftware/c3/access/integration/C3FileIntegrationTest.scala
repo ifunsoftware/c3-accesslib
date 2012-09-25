@@ -10,15 +10,19 @@ import org.junit.{Ignore, Test}
  * @author Mikhail Malygin
  */
 
-@Ignore
+//@Ignore
 class C3FileIntegrationTest {
 
   @Test
   def testFileSystemCRUD(){
 
-    val C3_SYSTEM_ADDRESS = "http://localhost:7373"
+    val C3_SYSTEM_ADDRESS = "http://node0.c3.ifunsoftware.com"
 
-    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
+    val C3_DOMAIN = "aphreet"
+
+    val C3_KEY = "e14ebc01610f9273fbe12e118d662f37"
+
+    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS, domain = C3_DOMAIN, key = C3_KEY)
 
     val node = system.getFile("/")
 
@@ -28,26 +32,26 @@ class C3FileIntegrationTest {
 
     dir.createDirectory(directoryName)
 
-    val testDir = dir.children.filter(_.name == directoryName).head.asInstanceOf[C3Directory]
+    val testDir = dir.children().filter(_.name == directoryName).head.asInstanceOf[C3Directory]
 
-    for(child <- testDir.children){
+    for(child <- testDir.children()){
       println(child.name)
     }
 
     testDir.createDirectory("MyDirectory")
     testDir.createFile("HelloWorld124.txt", Map("md0" -> "value0"), DataStream("Hello, World!"))
 
-    assertEquals(List("MyDirectory", "HelloWorld124.txt"), testDir.children.map(_.name).toList)
+    assertEquals(List("MyDirectory", "HelloWorld124.txt"), testDir.children(embedChildrenData = true).map(_.name).toList)
 
-    for(child <- testDir.children){
+    for(child <- testDir.children(embedChildrenData = true)){
       system.deleteResource(child.address)
     }
 
     testDir.markDirty()
 
-    assertTrue(testDir.children.isEmpty)
+    assertTrue(testDir.children(embedChildrenData = true).isEmpty)
 
-    for(child <- testDir.children){
+    for(child <- testDir.children()){
       println(child.name)
     }
 

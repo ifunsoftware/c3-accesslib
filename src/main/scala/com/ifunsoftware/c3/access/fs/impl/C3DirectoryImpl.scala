@@ -6,7 +6,7 @@ import collection.mutable.ArrayBuffer
 import xml.{XML, NodeSeq}
 import java.nio.channels.Channels
 import org.slf4j.LoggerFactory
-import com.ifunsoftware.c3.access.fs.{C3File, C3FileSystemNode, C3Directory}
+import com.ifunsoftware.c3.access.fs.{C3FileSystemNode, C3Directory}
 
 /**
  * Copyright iFunSoftware 2011
@@ -37,7 +37,9 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
 
   def this(system:C3SystemImpl, address:String, xml:NodeSeq, _name:String, _fullname:String) = this(system, address, xml, _name, _fullname, null)
 
-  override def children:List[C3FileSystemNode] = preloadDir{_children}
+  override def children(embedChildrenData: Boolean = false): List[C3FileSystemNode] = {
+    preloadDir(embedChildrenData){_children}
+  }
 
   override def createDirectory(name:String){
 
@@ -87,10 +89,15 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
         case s => s
       }) + "/" + childName
 
+      val childData = (nodesTag \ "@data") match {
+        case NodeSeq.Empty => null
+        case xml: NodeSeq => xml
+      }
+
       val child:C3FileSystemNode = if(isFile){
-        new C3FileImpl(system, childAddress, childName, childFullName)
+        new C3FileImpl(system, childAddress, childData, childName, childFullName)
       }else{
-        new C3DirectoryImpl(system, childAddress, childName, childFullName)
+        new C3DirectoryImpl(system, childAddress, childData, childName, childFullName)
       }
 
       array += child
@@ -107,20 +114,20 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
     directoryLoaded = true
   }
 
-  def getChild(name:String):Option[C3FileSystemNode] = {
-    children.filter(_.name == name).headOption
+  def getChild(name:String, embedChildData: Boolean = false):Option[C3FileSystemNode] = {
+    children(embedChildData).filter(_.name == name).headOption
   }
   
   def markDirty() {
     directoryLoaded = false
   }
 
-  protected def preloadDir[T](value: => T):T = {
+  protected def preloadDir[T](embedChildrenData: Boolean)(value: => T):T = {
     if(!directoryLoaded){
 
       log.debug("Directory {} is not loaded yet, loading...", address)
 
-      val channel = system.getData(address)
+      val channel = system.getData(address, embedChildrenData)
 
       val xml = XML.load(Channels.newReader(channel, "UTF-8"))
       updateFieldsFromDirectoryXml(xml)

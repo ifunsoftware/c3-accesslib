@@ -232,9 +232,9 @@ class C3SystemImpl(val host:String,
     })
   }
 
-  override def getData(ra:String):C3ByteChannel = getDataInternal(ra, 0)
+  override def getData(ra:String, embedData: Boolean = false): C3ByteChannel = getDataInternal(ra, 0, embedData)
 
-  def getDataInternal(address:String, version:Int):C3ByteChannel = {
+  def getDataInternal(address:String, version:Int, embedData: Boolean = false): C3ByteChannel = {
 
     val relativeUrl = if(version > 0){
       resourceRequestUri + address + "/" + version
@@ -242,7 +242,7 @@ class C3SystemImpl(val host:String,
       resourceRequestUri + address
     }
 
-    val method = createGetMethod(relativeUrl)
+    val method = createGetMethod(relativeUrl, embedData)
 
     val status = httpClient.executeMethod(method)
     status match {
@@ -346,7 +346,7 @@ class C3SystemImpl(val host:String,
     }
   }
 
-  private def createGetMethod(relativeUrl:String, metadata:Boolean = false):HttpMethodBase = {
+  private def createGetMethod(relativeUrl:String, metadata:Boolean = false, embedData: Boolean = false):HttpMethodBase = {
     val method =
       if(metadata)
         new GetMethod(host + relativeUrl + "?metadata")
@@ -386,7 +386,7 @@ class C3SystemImpl(val host:String,
   /**
    * @param relativeUrl url without hostname, i.e. /rest/resource/<address>
    */
-  private def addAuthHeaders(method:HttpMethodBase, relativeUrl:String) {
+  private def addAuthHeaders(method:HttpMethodBase, relativeUrl:String, embedData: Boolean = false) {
     if(domain != "anonymous"){
 
       val cleanUrl = makeCleanUrl(relativeUrl)
@@ -409,6 +409,12 @@ class C3SystemImpl(val host:String,
 
       val dateHeader = new Header("x-c3-date", dateString)
       method.addRequestHeader(dateHeader)
+
+      if(embedData){
+        val embedDataHeader =  new Header("x-c3-data", embedData.toString)
+        method.addRequestHeader(embedDataHeader)
+      }
+
     }
   }
 
