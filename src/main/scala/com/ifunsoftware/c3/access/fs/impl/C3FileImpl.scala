@@ -17,7 +17,7 @@ class C3FileImpl(override val system:C3SystemImpl,
 
   def this(system:C3SystemImpl, address:String, _name:String, _fullname:String) =
     this(system, address, null, _name, _fullname)
-  
+
   override def toString:String = {
     val builder = new StringBuilder
 

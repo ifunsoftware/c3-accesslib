@@ -20,11 +20,11 @@ class C3ResourceImpl(val system:C3SystemImpl, var _address:String, val xml:NodeS
 
   private var _tracksVersions:Boolean = false
 
-  private var _metadata:Map[String, String] = null
+  protected var _metadata:Map[String, String] = null
 
   private var _systemMetadata:Map[String, String] = null
 
-  private var _versions:List[C3Version] = null
+  protected var _versions:List[C3Version] = null
 
   protected var loaded = false
 

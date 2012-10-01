@@ -4,13 +4,14 @@ import org.junit.Assert._
 import com.ifunsoftware.c3.access.fs.C3Directory
 import com.ifunsoftware.c3.access.{C3AccessException, DataStream, C3SystemFactory}
 import org.junit.{Ignore, Test}
+import io.Source
 
 /**
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
  */
 
-//@Ignore
+@Ignore
 class C3FileIntegrationTest {
 
   @Test
@@ -32,7 +33,7 @@ class C3FileIntegrationTest {
 
     dir.createDirectory(directoryName)
 
-    val testDir = dir.children().filter(_.name == directoryName).head.asInstanceOf[C3Directory]
+    val testDir = dir.children(embedChildrenData = false, embedChildMetaData = Set("content.type")).filter(_.name == directoryName).head.asInstanceOf[C3Directory]
 
     for(child <- testDir.children()){
       println(child.name)
@@ -41,7 +42,18 @@ class C3FileIntegrationTest {
     testDir.createDirectory("MyDirectory")
     testDir.createFile("HelloWorld124.txt", Map("md0" -> "value0"), DataStream("Hello, World!"))
 
-    assertEquals(List("MyDirectory", "HelloWorld124.txt"), testDir.children(embedChildrenData = true).map(_.name).toList)
+    assertEquals(List("MyDirectory", "HelloWorld124.txt"), testDir.children(embedChildrenData = false, embedChildMetaData = Set("md0")).map(_.name).toList)
+
+    val children = testDir.children(embedChildrenData = false, embedChildMetaData = Set("md0"))
+
+    children.filter(!_.isDirectory).map(_.asFile).foreach{ f =>
+      val versions = f.versions
+      versions.foreach(v => {
+        println(Source.fromInputStream(v.getDataStream, "UTF-8").getLines().toList.mkString("\n"))
+      })
+      val metadata = f.metadata
+      metadata.foreach(md => println(md._1 + ": " + md._2))
+    }
 
     for(child <- testDir.children(embedChildrenData = true)){
       system.deleteResource(child.address)

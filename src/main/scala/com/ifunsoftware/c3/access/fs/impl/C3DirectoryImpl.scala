@@ -1,12 +1,14 @@
 package com.ifunsoftware.c3.access.fs.impl
 
-import com.ifunsoftware.c3.access.impl.C3SystemImpl
-import com.ifunsoftware.c3.access.DataStream
+import com.ifunsoftware.c3.access.impl.{C3VersionImpl, C3SystemImpl}
+import com.ifunsoftware.c3.access.{C3InputStream, C3ByteChannel, C3Version, DataStream}
 import collection.mutable.ArrayBuffer
 import xml.{XML, NodeSeq}
 import java.nio.channels.Channels
 import org.slf4j.LoggerFactory
 import com.ifunsoftware.c3.access.fs.{C3FileSystemNode, C3Directory}
+import java.nio.ByteBuffer
+import java.io.ByteArrayInputStream
 
 /**
  * Copyright iFunSoftware 2011
@@ -37,8 +39,8 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
 
   def this(system:C3SystemImpl, address:String, xml:NodeSeq, _name:String, _fullname:String) = this(system, address, xml, _name, _fullname, null)
 
-  override def children(embedChildrenData: Boolean = false): List[C3FileSystemNode] = {
-    preloadDir(embedChildrenData){_children}
+  override def children(embedChildrenData: Boolean = false, embedChildMetaData: Set[String] = Set()): List[C3FileSystemNode] = {
+    preloadDir(embedChildrenData, embedChildMetaData){_children}
   }
 
   override def createDirectory(name:String){
@@ -70,7 +72,6 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
     throw new UnsupportedOperationException
   }
 
-
   def updateFieldsFromDirectoryXml(description:NodeSeq){
 
     val directoryTag = (description \ "directory")(0)
@@ -89,15 +90,50 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
         case s => s
       }) + "/" + childName
 
-      val childData = (nodesTag \ "@data") match {
+      val childData = (nodeTag \ "data") match {
         case NodeSeq.Empty => null
         case xml: NodeSeq => xml
       }
 
+      val childMetaData: Map[String, String] = (nodeTag \ "metadata") match {
+        case NodeSeq.Empty => Map()
+        case xml: NodeSeq => {
+          val elements = (xml \ "element").map { e =>
+            ((e \ "@key").text -> (e \ "value").text)
+          }.toMap
+
+          elements
+        }
+      }
+
       val child:C3FileSystemNode = if(isFile){
-        new C3FileImpl(system, childAddress, childData, childName, childFullName)
-      }else{
-        new C3DirectoryImpl(system, childAddress, childData, childName, childFullName)
+        if(childData != null){
+          val file: C3FileImpl = new C3FileImpl(system, childAddress, null, childName, childFullName){
+            _metadata = childMetaData
+            loaded = true
+            _versions = List(new C3VersionImpl(system, this, null, Map(), 0){
+                private val data = childData.text
+                private val inputStream = new ByteArrayInputStream(data.getBytes("UTF-8"))
+                override def getData:C3ByteChannel = new C3ByteChannel{
+                  override def length:Long = data.length
+                  def readContentAsString:String = data
+                  def isOpen = false
+                  def close() {}
+                  def read(p1: ByteBuffer) = 0
+                }
+                override def getDataStream:C3InputStream = new C3InputStream {
+                  override def length = data.length
+                  override def read() = inputStream.read()
+                  override def read(buf : scala.Array[scala.Byte]) = inputStream.read(buf)
+                }
+              })
+          }
+          file
+        } else {
+          new C3FileImpl(system, childAddress, null, childName, childFullName)
+        }
+      } else {
+        new C3DirectoryImpl(system, childAddress, null, childName, childFullName)
       }
 
       array += child
@@ -114,25 +150,22 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
     directoryLoaded = true
   }
 
-  def getChild(name:String, embedChildData: Boolean = false):Option[C3FileSystemNode] = {
-    children(embedChildData).filter(_.name == name).headOption
+  override def getChild(name:String, embedChildData: Boolean = false, embedChildMetaData: Set[String] = Set()):Option[C3FileSystemNode] = {
+    children(embedChildData, embedChildMetaData).filter(_.name == name).headOption
   }
   
   def markDirty() {
     directoryLoaded = false
   }
 
-  protected def preloadDir[T](embedChildrenData: Boolean)(value: => T):T = {
+  protected def preloadDir[T](embedChildrenData: Boolean, embedChildMetaData: Set[String] = Set())(value: => T):T = {
     if(!directoryLoaded){
-
       log.debug("Directory {} is not loaded yet, loading...", address)
 
-      val channel = system.getData(address, embedChildrenData)
+      val channel = system.getData(address, embedChildrenData, embedChildMetaData)
 
       val xml = XML.load(Channels.newReader(channel, "UTF-8"))
       updateFieldsFromDirectoryXml(xml)
-
-
     }
     value
   }

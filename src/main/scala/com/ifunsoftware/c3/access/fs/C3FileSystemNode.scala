@@ -27,7 +27,7 @@ trait C3File extends C3FileSystemNode{
 
 trait C3Directory extends C3FileSystemNode {
 
-  def children(embedChildrenData: Boolean = false): List[C3FileSystemNode]
+  def children(embedChildrenData: Boolean = false, embedChildMetaData: Set[String] = Set()): List[C3FileSystemNode]
   
   def createDirectory(name:String)
 
@@ -35,6 +35,6 @@ trait C3Directory extends C3FileSystemNode {
 
   def markDirty()
 
-  def getChild(name:String, embedChildrenData: Boolean = false):Option[C3FileSystemNode]
+  def getChild(name:String, embedChildData: Boolean = false, embedChildMetaData: Set[String] = Set()):Option[C3FileSystemNode]
   
 }
