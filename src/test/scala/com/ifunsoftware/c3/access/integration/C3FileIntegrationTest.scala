@@ -33,7 +33,7 @@ class C3FileIntegrationTest {
 
     dir.createDirectory(directoryName)
 
-    val testDir = dir.children(embedChildrenData = false, embedChildMetaData = Set("content.type")).filter(_.name == directoryName).head.asInstanceOf[C3Directory]
+    val testDir = dir.children().filter(_.name == directoryName).head.asInstanceOf[C3Directory]
 
     for(child <- testDir.children()){
       println(child.name)
@@ -42,9 +42,9 @@ class C3FileIntegrationTest {
     testDir.createDirectory("MyDirectory")
     testDir.createFile("HelloWorld124.txt", Map("md0" -> "value0"), DataStream("Hello, World!"))
 
-    assertEquals(List("MyDirectory", "HelloWorld124.txt"), testDir.children(embedChildrenData = false, embedChildMetaData = Set("md0")).map(_.name).toList)
+    assertEquals(List("MyDirectory", "HelloWorld124.txt"), testDir.children(embedChildrenData = true, embedChildMetaData = Set("md0")).map(_.name).toList)
 
-    val children = testDir.children(embedChildrenData = false, embedChildMetaData = Set("md0"))
+    val children = testDir.children(embedChildrenData = true, embedChildMetaData = Set("md0"))
 
     children.filter(!_.isDirectory).map(_.asFile).foreach{ f =>
       val versions = f.versions

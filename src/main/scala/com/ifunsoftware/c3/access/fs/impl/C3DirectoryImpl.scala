@@ -112,7 +112,8 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
             _metadata = childMetaData
             loaded = true
             _versions = List(new C3VersionImpl(system, this, null, Map(), 0){
-                private val data = childData.text
+                private val data = new String(new sun.misc.BASE64Decoder().decodeBuffer(childData.text))
+
                 private val inputStream = new ByteArrayInputStream(data.getBytes("UTF-8"))
                 override def getData:C3ByteChannel = new C3ByteChannel{
                   override def length:Long = data.length
