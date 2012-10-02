@@ -122,7 +122,7 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
                   def read(p1: ByteBuffer) = 0
                 }
                 override def getDataStream:C3InputStream = new C3InputStream {
-                  override def length = data.length
+                  override def length = data.getBytes.length
                   override def read() = inputStream.read()
                   override def read(buf : scala.Array[scala.Byte]) = inputStream.read(buf)
                 }
