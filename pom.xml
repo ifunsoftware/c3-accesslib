@@ -9,6 +9,7 @@
     <scm>
         <connection>scm:git:ssh://github.com/ifunsoftware/c3-accesslib.git</connection>
         <url>https://github.com/ifunsoftware/c3-accesslib</url>
+        <developerConnection>scm:git:ssh://git@github.com/ifunsoftware/c3-accesslib.git</developerConnection>
     </scm>
 
     <properties>
