@@ -1,7 +1,7 @@
 package com.ifunsoftware.c3.access.fs.impl
 
 import com.ifunsoftware.c3.access.impl.{C3VersionImpl, C3SystemImpl}
-import com.ifunsoftware.c3.access.{C3InputStream, C3ByteChannel, C3Version, DataStream}
+import com.ifunsoftware.c3.access.{C3InputStream, C3ByteChannel, DataStream}
 import collection.mutable.ArrayBuffer
 import xml.{XML, NodeSeq}
 import java.nio.channels.Channels
@@ -112,7 +112,7 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
             _metadata = childMetaData
             loaded = true
             _versions = List(new C3VersionImpl(system, this, null, Map(), 0){
-                private val data = new String(new sun.misc.BASE64Decoder().decodeBuffer(childData.text))
+                private val data = new String(C3Base64Decoder.decodeBuffer(childData.text))
 
                 private val inputStream = new ByteArrayInputStream(data.getBytes("UTF-8"))
                 override def getData:C3ByteChannel = new C3ByteChannel{

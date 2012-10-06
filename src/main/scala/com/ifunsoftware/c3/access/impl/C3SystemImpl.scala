@@ -1,7 +1,7 @@
 package com.ifunsoftware.c3.access.impl
 
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.{Locale, Date}
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.Mac
 import org.slf4j.LoggerFactory
@@ -402,7 +402,7 @@ class C3SystemImpl(val host:String,
 
       val cleanUrl = makeCleanUrl(relativeUrl)
 
-      val dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z")
+      val dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", Locale.ENGLISH)
 
       val dateString = dateFormat.format(new Date())
 
