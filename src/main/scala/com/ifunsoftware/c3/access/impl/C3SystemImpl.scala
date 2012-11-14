@@ -250,7 +250,7 @@ class C3SystemImpl(val host:String,
         try{
           method.releaseConnection()
         }catch{
-          case e => //do nothing here
+          case e: Throwable => //do nothing here
         }
         handleError(status, method); null
     }
@@ -272,7 +272,7 @@ class C3SystemImpl(val host:String,
         try{
           method.releaseConnection()
         }catch{
-          case e => //do nothing here
+          case e: Throwable => //do nothing here
         }
         handleError(status, method); null
     }
@@ -341,7 +341,7 @@ class C3SystemImpl(val host:String,
 
       reader.close()
 
-      throw new C3AccessException(("Filed to execute method, http status is " + status).asInstanceOf[String], status)
+      throw new C3AccessException(("Filed to execute method, http status is " + status), status)
     }
   }
 
@@ -431,7 +431,7 @@ class C3SystemImpl(val host:String,
     val secret = new SecretKeySpec(key.getBytes, "HmacSHA256")
     mac.init(secret)
 
-    val digest = mac.doFinal(input.getBytes("UTF-8"));
+    val digest = mac.doFinal(input.getBytes("UTF-8"))
 
     val hexString = new StringBuilder
 
