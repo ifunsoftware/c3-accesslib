@@ -9,7 +9,7 @@ import org.apache.commons.httpclient.methods.multipart.{FilePart, PartSource}
  * @author Mikhail Malygin
  */
 
-class ByteArrayDataStream(val bytes:Array[Byte]) extends DataStream {
+case class ByteArrayDataStream(bytes:Array[Byte]) extends DataStream {
 
   override def createFilePart:FilePart = new FilePart("data", new ByteArrayPartSource(bytes))
 }

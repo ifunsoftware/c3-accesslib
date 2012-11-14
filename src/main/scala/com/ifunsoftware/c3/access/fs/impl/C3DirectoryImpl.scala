@@ -121,8 +121,6 @@ class C3DirectoryImpl(override val system:C3SystemImpl,
 
       val xml = XML.load(Channels.newReader(channel, "UTF-8"))
       updateFieldsFromDirectoryXml(xml)
-
-
     }
     value
   }

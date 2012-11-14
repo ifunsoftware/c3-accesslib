@@ -14,6 +14,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <scala.version>2.9.1</scala.version>
+        <c3.version>1.3.2.SNAPSHOT</c3.version>
     </properties>
 
     <dependencies>
@@ -48,6 +49,30 @@
             <version>3.1</version>
         </dependency>
 
+        <!-- Optional dependencies to deploy access lib to the c3 node -->
+        <dependency>
+            <groupId>org.aphreet.c3</groupId>
+            <artifactId>c3-core</artifactId>
+            <version>${c3.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aphreet.c3</groupId>
+            <artifactId>c3-filesystem</artifactId>
+            <version>${c3.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.aphreet.c3</groupId>
+            <artifactId>c3-access-control</artifactId>
+            <version>${c3.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Test dependencies -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
