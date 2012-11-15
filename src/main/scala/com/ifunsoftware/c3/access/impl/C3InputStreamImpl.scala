@@ -34,7 +34,7 @@ class C3InputStreamImpl(val method:HttpMethodBase) extends C3InputStream{
     try{
       httpInput.close()
     }finally{
-      method.releaseConnection();
+      method.releaseConnection()
     }
   }
 }

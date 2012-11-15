@@ -1,10 +1,14 @@
 package com.ifunsoftware.c3.access.local
 
 import com.ifunsoftware.c3.access.{DataStream, C3Resource}
-import org.aphreet.c3.platform.resource.{ResourceVersion, Resource}
+import org.aphreet.c3.platform.resource.{Resource, ResourceVersion}
 import org.aphreet.c3.platform.accesscontrol.UPDATE
 
-class LocalC3Resource(val system: LocalC3System, val resource: Resource) extends C3Resource with DataConverter{
+class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer) extends C3Resource with DataConverter{
+
+  def this(system: LocalC3System, address: String) = this(system, new LazyResourceContainer(system, address))
+
+  def this(system: LocalC3System, resource: Resource) = this(system, new LoadedResourceContainer(resource))
 
   def address = resource.address
 
@@ -38,4 +42,18 @@ class LocalC3Resource(val system: LocalC3System, val resource: Resource) extends
   def update(data: DataStream) {
     update(Map(), data)
   }
+
+  implicit def convertContainerToResource(container: ResourceContainer): Resource = container.resource
 }
+
+trait ResourceContainer{
+
+  def resource:Resource
+
+}
+
+class LazyResourceContainer(system: LocalC3System, address: String) extends ResourceContainer{
+  lazy val resource = system.fetchResource(address)
+}
+
+class LoadedResourceContainer(val resource: Resource) extends ResourceContainer

@@ -25,8 +25,4 @@ abstract class C3FileSystemNodeImpl(override val system:C3SystemImpl,
   override def move(path:String) {
     system.moveFile(fullname, path)
   }
-
-  def asDirectory:C3Directory = throw new IllegalArgumentException("This node is not a directory")
-
-  def asFile:C3File = throw new IllegalArgumentException("This node is not a file")
 }
