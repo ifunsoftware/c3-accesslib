@@ -16,9 +16,9 @@ trait C3FileSystemNode extends C3Resource{
   
   def isDirectory:Boolean
 
-  def asDirectory:C3Directory
+  def asDirectory:C3Directory = throw new IllegalArgumentException("This instance is not a directory")
 
-  def asFile:C3File
+  def asFile:C3File = throw new IllegalArgumentException("This instance is not a file")
 }
 
 trait C3File extends C3FileSystemNode{

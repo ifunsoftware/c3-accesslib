@@ -1,6 +1,6 @@
 package com.ifunsoftware.c3.access.local
 
-import com.ifunsoftware.c3.access.{C3InputStream, C3Version}
+import com.ifunsoftware.c3.access.C3Version
 import org.aphreet.c3.platform.resource.ResourceVersion
 
 class LocalC3Version(val version:ResourceVersion) extends C3Version{
@@ -11,17 +11,6 @@ class LocalC3Version(val version:ResourceVersion) extends C3Version{
 
   def getData = new LocalC3ByteChannel(version.data)
 
-  def getDataStream = new C3InputStream {
+  def getDataStream = new LocalC3InputStream(version.data)
 
-    val is = version.data.inputStream
-
-    def length = version.data.length
-
-    def read() = is.read()
-
-    override def close(){
-      is.close()
-      super.close()
-    }
-  }
 }

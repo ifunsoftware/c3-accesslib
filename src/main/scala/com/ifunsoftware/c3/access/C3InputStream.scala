@@ -10,6 +10,4 @@ abstract class C3InputStream extends InputStream{
 
   def length:Long
 
-  override def read(buf : scala.Array[scala.Byte]) : scala.Int
-
 }
