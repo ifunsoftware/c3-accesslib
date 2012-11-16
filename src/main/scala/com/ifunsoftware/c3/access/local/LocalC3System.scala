@@ -7,14 +7,16 @@ import org.aphreet.c3.platform.resource.{ResourceVersion, Resource}
 import org.aphreet.c3.platform.accesscontrol._
 import org.aphreet.c3.platform.filesystem.FSManager
 import scala.Some
+import org.osgi.framework.BundleContext
+import org.slf4j.LoggerFactory
 
-class LocalC3System(val domain: String) extends C3System with DataConverter{
+class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3System with DataConverter{
 
-  var accessManager: AccessManager = _
+  var accessManager = resolveService(classOf[AccessManager])
 
-  var fsManager: FSManager = _
+  var fsManager = resolveService(classOf[FSManager])
 
-  var accessControlManager: AccessControlManager = _
+  var accessControlManager: AccessControlManager = resolveService(classOf[AccessControlManager])
 
   val accessControlParams = Map("domain" -> domain)
 
@@ -122,4 +124,19 @@ class LocalC3System(val domain: String) extends C3System with DataConverter{
     fsManager.moveNode(domain, oldPath, newPath)
   }
 
+  def resolveService[T](clazz:Class[T]):T = {
+
+    LocalC3System.log.info("Resolving service {}", clazz.getCanonicalName)
+
+    val context = bundleContext.asInstanceOf[BundleContext]
+
+    val reference = context.getServiceReference(clazz.getCanonicalName)
+
+    context.getService(reference).asInstanceOf[T]
+  }
+}
+
+object LocalC3System{
+
+  val log = LoggerFactory.getLogger(classOf[LocalC3System])
 }
