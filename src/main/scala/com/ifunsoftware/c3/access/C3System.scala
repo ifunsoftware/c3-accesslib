@@ -9,7 +9,7 @@ import fs.C3FileSystemNode
 
 trait C3System {
 
-  def getData(ra:String, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()):C3ByteChannel
+  def getData(ra:String):C3ByteChannel
 
   def getResource(ra:String, metadata:List[String] = List()):C3Resource
 

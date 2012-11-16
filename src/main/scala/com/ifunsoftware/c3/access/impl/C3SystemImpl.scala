@@ -231,7 +231,12 @@ class C3SystemImpl(val host:String,
     })
   }
 
-  override def getData(ra:String, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel = getDataInternal(ra, 0, embedData, embedChildMetaData)
+  override
+  def getData(ra:String):C3ByteChannel =
+    getData(ra, embedData = false, embedChildMetaData = Set())
+
+  def getData(ra:String, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel =
+    getDataInternal(ra, 0, embedData, embedChildMetaData)
 
   def getDataInternal(address:String, version:Int, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel = {
 

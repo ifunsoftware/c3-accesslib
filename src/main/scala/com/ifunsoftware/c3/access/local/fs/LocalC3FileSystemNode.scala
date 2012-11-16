@@ -38,9 +38,11 @@ class LocalC3FileSystemNode(override val system: LocalC3System,
 
   def fullname = fullPath
 
-  def children = internalFSNode.children
+  def children(embedChildrenData: Boolean, embedChildMetaData: Set[String]) =
+    internalFSNode.children
 
-  def getChild(name: String) = internalFSNode.getChild(name)
+  def getChild(name: String, embedChildData: Boolean, embedChildMetaData: Set[String]) =
+    internalFSNode.getChild(name)
 
   def createDirectory(name: String) {
     system.createDirectory(fullname + "/" + name)

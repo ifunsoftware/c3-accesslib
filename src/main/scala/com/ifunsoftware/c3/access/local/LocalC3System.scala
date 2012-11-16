@@ -121,4 +121,5 @@ class LocalC3System(val domain: String) extends C3System with DataConverter{
   def move(oldPath: String, newPath: String){
     fsManager.moveNode(domain, oldPath, newPath)
   }
+
 }
