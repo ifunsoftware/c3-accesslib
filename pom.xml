@@ -3,7 +3,7 @@
     <name>C3 System Access Library</name>
     <groupId>com.ifunsoftware.c3</groupId>
     <artifactId>accesslib</artifactId>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.5</version>
     <inceptionYear>2011</inceptionYear>
 
     <scm>
@@ -132,6 +132,18 @@
             <id>libs-snapshot</id>
             <name>iFunSoftware snapshot repository</name>
             <url>http://repository-ifunsoftware.rhcloud.com/content/repositories/snapshots/</url>
+        </repository>
+
+        <repository>
+            <id>com.springsource.repository.bundles.release</id>
+            <name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
+            <url>http://repository.springsource.com/maven/bundles/release</url>
+        </repository>
+
+        <repository>
+            <id>com.springsource.repository.bundles.external</id>
+            <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
+            <url>http://repository.springsource.com/maven/bundles/external</url>
         </repository>
     </repositories>
 
