@@ -3,7 +3,7 @@
     <name>C3 System Access Library</name>
     <groupId>com.ifunsoftware.c3</groupId>
     <artifactId>accesslib</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.5-SNAPSHOT</version>
     <inceptionYear>2011</inceptionYear>
 
     <scm>
@@ -69,6 +69,13 @@
         <dependency>
             <groupId>org.aphreet.c3</groupId>
             <artifactId>c3-access-control</artifactId>
+            <version>${c3.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aphreet.c3</groupId>
+            <artifactId>c3-search</artifactId>
             <version>${c3.version}</version>
             <scope>provided</scope>
         </dependency>

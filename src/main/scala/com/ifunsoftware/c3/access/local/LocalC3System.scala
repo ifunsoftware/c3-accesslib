@@ -10,6 +10,7 @@ import scala.Some
 import org.osgi.framework.BundleContext
 import org.slf4j.LoggerFactory
 import org.aphreet.c3.platform.domain.DomainManager
+import org.aphreet.c3.platform.search.SearchManager
 
 class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3System with DataConverter{
 
@@ -17,9 +18,11 @@ class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3Syst
 
   val fsManager = resolveService(classOf[FSManager])
 
-  val accessControlManager: AccessControlManager = resolveService(classOf[AccessControlManager])
+  val accessControlManager = resolveService(classOf[AccessControlManager])
 
-  val domainManager: DomainManager = resolveService(classOf[DomainManager])
+  val domainManager = resolveService(classOf[DomainManager])
+
+  val searchManager = resolveService(classOf[SearchManager])
 
   val domainId = {
     domainManager.domainById(domain) match {
@@ -102,8 +105,6 @@ class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3Syst
     fsManager.deleteNode(domainId, name)
   }
 
-  def search(query: String):List[SearchResultEntry] = null
-
   def retrieveAccessTokens(action:Action):AccessTokens = {
     accessControlManager.retrieveAccessTokens(LocalAccess, action, accessControlParams)
   }
@@ -135,6 +136,13 @@ class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3Syst
 
   def move(oldPath: String, newPath: String){
     fsManager.moveNode(domainId, oldPath, newPath)
+  }
+
+  def search(query: String):List[SearchResultEntry] = {
+    searchManager.search(domainId, query)
+      .map(element => SearchResultEntry(element.address, element.score, element.fragments.map(
+      fragment => SearchResultFragment(fragment.field, fragment.foundStrings.toList)).toList
+    )).toList
   }
 
   def resolveService[T](clazz:Class[T]):T = {
