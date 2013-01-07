@@ -6,7 +6,7 @@ import com.ifunsoftware.c3.access.DataStream
 
 trait DataConverter {
 
-  implicit def streamToInternalStream(datastream:DataStream):InternalDataStream = {
+  implicit def streamToInternalStream(datastream: DataStream): InternalDataStream = {
     datastream match {
       case ByteArrayDataStream(bytes) => InternalDataStream.create(bytes)
       case FileDataStream(file) => InternalDataStream.create(file)

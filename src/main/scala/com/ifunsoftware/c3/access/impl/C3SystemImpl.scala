@@ -22,12 +22,12 @@ import params.HttpConnectionManagerParams
  * @author Mikhail Malygin
  */
 
-class C3SystemImpl(val host:String,
-                   val domain:String,
-                   val key:String,
-                   val maxConnections:Int = 100,
-                   val proxyHost:String = null,
-                   val proxyPort:Int = 0) extends C3System{
+class C3SystemImpl(val host: String,
+                   val domain: String,
+                   val key: String,
+                   val maxConnections: Int = 100,
+                   val proxyHost: String = null,
+                   val proxyPort: Int = 0) extends C3System {
 
   val log = LoggerFactory.getLogger(getClass)
 
@@ -39,7 +39,7 @@ class C3SystemImpl(val host:String,
 
   val httpClient = createHttpClient
 
-  private def createHttpClient:HttpClient = {
+  private def createHttpClient: HttpClient = {
 
     val hostConfiguration = getHostConfiguration
 
@@ -56,12 +56,12 @@ class C3SystemImpl(val host:String,
     client
   }
 
-  private def getHostConfiguration:HostConfiguration = {
+  private def getHostConfiguration: HostConfiguration = {
     val url = new URL(host)
 
-    val port = if(url.getPort == -1){
+    val port = if (url.getPort == -1) {
       url.getDefaultPort
-    }else{
+    } else {
       url.getPort
     }
 
@@ -71,7 +71,7 @@ class C3SystemImpl(val host:String,
     val hostConfiguration = new HostConfiguration()
     hostConfiguration.setHost(hostname, port, protocol)
 
-    if (proxyHost != null){
+    if (proxyHost != null) {
       hostConfiguration.setProxy(proxyHost, proxyPort)
     }
 
@@ -79,16 +79,16 @@ class C3SystemImpl(val host:String,
   }
 
 
-  def getMetadataForName(name:String):NodeSeq = getMetadataInternal(fileRequestUri + name)
+  def getMetadataForName(name: String): NodeSeq = getMetadataInternal(fileRequestUri + name)
 
 
-  def getMetadataForAddress(ra:String, extendedMeta:List[String] = List()):NodeSeq = getMetadataInternal(resourceRequestUri + ra, extendedMeta)
+  def getMetadataForAddress(ra: String, extendedMeta: List[String] = List()): NodeSeq = getMetadataInternal(resourceRequestUri + ra, extendedMeta)
 
-  protected def getMetadataInternal(relativeUrl:String, extendedMeta:List[String] = List()):NodeSeq = {
+  protected def getMetadataInternal(relativeUrl: String, extendedMeta: List[String] = List()): NodeSeq = {
 
     val method = createGetMethod(relativeUrl, metadata = true)
 
-    if(!extendedMeta.isEmpty){
+    if (!extendedMeta.isEmpty) {
       val header = new Header("x-c3-extmeta", extendedMeta.reduceLeft(_ + "," + _))
       log.debug("Header value for extended meta {}", header.getValue)
       method.addRequestHeader(header)
@@ -104,9 +104,9 @@ class C3SystemImpl(val host:String,
     })
   }
 
-  override def getResource(ra:String, metadata:List[String] = List()):C3Resource = new C3ResourceImpl(this, ra, getMetadataForAddress(ra, metadata))
+  override def getResource(ra: String, metadata: List[String] = List()): C3Resource = new C3ResourceImpl(this, ra, getMetadataForAddress(ra, metadata))
 
-  override def getFile(fullname:String):C3FileSystemNode = {
+  override def getFile(fullname: String): C3FileSystemNode = {
     val metadata = getMetadataForName(fullname)
 
     val resource = new C3ResourceImpl(this, null, metadata)
@@ -116,40 +116,40 @@ class C3SystemImpl(val host:String,
     val name = resource.systemMetadata.get("c3.fs.nodename") match {
       case Some(value) => value
       case None => {
-        if(fullname == "/") "/"
+        if (fullname == "/") "/"
         else throw new C3AccessException("File " + fullname + " does not contain 'c3.fs.nodename' system metadata")
       }
     }
 
-    if(isDir){
+    if (isDir) {
       new C3DirectoryImpl(this, resource.address, metadata, name, fullname)
-    }else{
+    } else {
       new C3FileImpl(this, resource.address, metadata, name, fullname)
     }
   }
 
-  def deleteFile(name:String){
+  def deleteFile(name: String) {
     val method = createDeleteMethod(fileRequestUri + name)
 
     executeMethod(method, status => {
-      status match{
+      status match {
         case HttpStatus.SC_OK => Unit
         case _ => handleError(status, method)
       }
     })
   }
 
-  override def addResource(meta:Map[String, String], data:DataStream):String = {
+  override def addResource(meta: Map[String, String], data: DataStream): String = {
     addDataInternal(resourceRequestUri, meta, data)
   }
 
-  def addFile(fullname:String, meta:Map[String, String], data:DataStream):String = {
+  def addFile(fullname: String, meta: Map[String, String], data: DataStream): String = {
     val relativeUrl = fileRequestUri + fullname
 
     addDataInternal(relativeUrl, meta, data)
   }
 
-  private def addDataInternal(relativeUrl:String, meta:Map[String, String], data:DataStream):String = {
+  private def addDataInternal(relativeUrl: String, meta: Map[String, String], data: DataStream): String = {
 
     val method = createPostMethod(relativeUrl)
 
@@ -163,9 +163,9 @@ class C3SystemImpl(val host:String,
 
           val uploadedTags = (xml \ "uploaded")
 
-          if (uploadedTags.size > 0){
+          if (uploadedTags.size > 0) {
             ((uploadedTags(0)) \ "@address").text
-          }else{
+          } else {
             null
           }
         }
@@ -174,7 +174,7 @@ class C3SystemImpl(val host:String,
     })
   }
 
-  def addDirectory(fullname:String){
+  def addDirectory(fullname: String) {
     val method = createPostMethod(fileRequestUri + fullname)
 
     method.addRequestHeader(new Header("x-c3-nodetype", "directory"))
@@ -187,8 +187,8 @@ class C3SystemImpl(val host:String,
     })
   }
 
-  override def search(query:String):List[SearchResultEntry] = {
-    val method= createGetMethod(searchRequestUri + URLEncoder.encode(query, "UTF-8"))
+  override def search(query: String): List[SearchResultEntry] = {
+    val method = createGetMethod(searchRequestUri + URLEncoder.encode(query, "UTF-8"))
 
     executeMethod(method, status => {
       status match {
@@ -201,7 +201,7 @@ class C3SystemImpl(val host:String,
 
   }
 
-  def updateResource(address:String, meta:Map[String, String], data:DataStream):Int = {
+  def updateResource(address: String, meta: Map[String, String], data: DataStream): Int = {
 
     val method = createPutMethod(resourceRequestUri + address)
 
@@ -220,11 +220,11 @@ class C3SystemImpl(val host:String,
     })
   }
 
-  override def deleteResource(address:String) {
+  override def deleteResource(address: String) {
     val method = createDeleteMethod(resourceRequestUri + address)
 
     executeMethod(method, status => {
-      status match{
+      status match {
         case HttpStatus.SC_OK => Unit
         case _ => handleError(status, method)
       }
@@ -232,17 +232,17 @@ class C3SystemImpl(val host:String,
   }
 
   override
-  def getData(ra:String):C3ByteChannel =
+  def getData(ra: String): C3ByteChannel =
     getData(ra, embedData = false, embedChildMetaData = Set())
 
-  def getData(ra:String, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel =
+  def getData(ra: String, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel =
     getDataInternal(ra, 0, embedData, embedChildMetaData)
 
-  def getDataInternal(address:String, version:Int, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel = {
+  def getDataInternal(address: String, version: Int, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel = {
 
-    val relativeUrl = if(version > 0){
+    val relativeUrl = if (version > 0) {
       resourceRequestUri + address + "/" + version
-    }else{
+    } else {
       resourceRequestUri + address
     }
 
@@ -252,19 +252,20 @@ class C3SystemImpl(val host:String,
     status match {
       case HttpStatus.SC_OK => new C3ByteChannelImpl(method)
       case _ =>
-        try{
+        try {
           method.releaseConnection()
-        }catch{
+        } catch {
           case e: Throwable => //do nothing here
         }
-        handleError(status, method); null
+        handleError(status, method)
+        null
     }
   }
 
-  def getDataAsStreamInternal(address:String, version:Int):C3InputStream = {
-    val relativeUrl = if(version > 0){
+  def getDataAsStreamInternal(address: String, version: Int): C3InputStream = {
+    val relativeUrl = if (version > 0) {
       resourceRequestUri + address + "/" + version
-    }else{
+    } else {
       resourceRequestUri + address
     }
 
@@ -274,16 +275,17 @@ class C3SystemImpl(val host:String,
     status match {
       case HttpStatus.SC_OK => new C3InputStreamImpl(method)
       case _ =>
-        try{
+        try {
           method.releaseConnection()
-        }catch{
+        } catch {
           case e: Throwable => //do nothing here
         }
-        handleError(status, method); null
+        handleError(status, method)
+        null
     }
   }
 
-  def moveFile(path:String, newPath:String) {
+  def moveFile(path: String, newPath: String) {
 
     val method = createPutMethod(fileRequestUri + path)
 
@@ -299,26 +301,26 @@ class C3SystemImpl(val host:String,
     })
   }
 
-  protected def createPartsArray(meta:Map[String, String], data:DataStream):Array[Part] = {
+  protected def createPartsArray(meta: Map[String, String], data: DataStream): Array[Part] = {
 
-    var parts:List[Part] = meta.map(e => {
+    var parts: List[Part] = meta.map(e => {
       val part = new StringPart(e._1, e._2, "UTF-16")
       part.setCharSet("UTF-8")
       part
     }).toList
 
-    if(data != null){
+    if (data != null) {
       parts = data.createFilePart :: parts
     }
 
     parts.toArray
   }
 
-  protected def handleError(status:Int, method:HttpMethodBase){
+  protected def handleError(status: Int, method: HttpMethodBase) {
 
     val contentType = method.getResponseHeader("Content-Type").getValue
 
-    if(contentType.startsWith("application/xml")){
+    if (contentType.startsWith("application/xml")) {
       val xml = XML.load(method.getResponseBodyAsStream)
 
       val errorTag = (xml \ "error")(0)
@@ -327,12 +329,12 @@ class C3SystemImpl(val host:String,
 
       val exception = ((errorTag \ "exception")(0)).text
 
-      if(exception.length() > 0){
-        log.error("Failed to execute request, status " + status +", stacktrace:\n" + exception)
+      if (exception.length() > 0) {
+        log.error("Failed to execute request, status " + status + ", stacktrace:\n" + exception)
       }
 
       throw new C3AccessException(message, status)
-    }else{
+    } else {
 
       val reader = new InputStreamReader(method.getResponseBodyAsStream, "UTF-8")
 
@@ -350,21 +352,21 @@ class C3SystemImpl(val host:String,
     }
   }
 
-  private def createGetMethod(relativeUrl:String,
-                              metadata:Boolean = false,
+  private def createGetMethod(relativeUrl: String,
+                              metadata: Boolean = false,
                               embedData: Boolean = false,
-                              embedChildMetaData: Set[String] = Set()):HttpMethodBase = {
+                              embedChildMetaData: Set[String] = Set()): HttpMethodBase = {
     val method =
-      if(metadata)
+      if (metadata)
         new GetMethod(host + relativeUrl + "?metadata")
       else
         new GetMethod(host + relativeUrl)
 
-    if(embedData){
-      val embedDataHeader =  new Header("x-c3-data", embedData.toString)
+    if (embedData) {
+      val embedDataHeader = new Header("x-c3-data", embedData.toString)
       method.addRequestHeader(embedDataHeader)
     }
-    if(!embedChildMetaData.isEmpty){
+    if (!embedChildMetaData.isEmpty) {
       val embedChildMetaDataHeader = new Header("x-c3-meta", embedChildMetaData.mkString(","))
       method.addRequestHeader(embedChildMetaDataHeader)
     }
@@ -374,19 +376,19 @@ class C3SystemImpl(val host:String,
     method
   }
 
-  private def createPostMethod(relativeUrl:String):PostMethod = {
+  private def createPostMethod(relativeUrl: String): PostMethod = {
     val method = new PostMethod(host + relativeUrl)
     addAuthHeaders(method, relativeUrl)
     method
   }
 
-  private def createPutMethod(relativeUrl:String):PutMethod = {
+  private def createPutMethod(relativeUrl: String): PutMethod = {
     val method = new PutMethod(host + relativeUrl)
     addAuthHeaders(method, relativeUrl)
     method
   }
 
-  private def createDeleteMethod(relativeUrl:String):HttpMethodBase = {
+  private def createDeleteMethod(relativeUrl: String): HttpMethodBase = {
 
     val method = new DeleteMethod(host + relativeUrl)
 
@@ -395,15 +397,15 @@ class C3SystemImpl(val host:String,
     method
   }
 
-  def makeCleanUrl(url:String):String = {
+  def makeCleanUrl(url: String): String = {
     url.replaceAll("/+", "/")
   }
 
   /**
    * @param relativeUrl url without hostname, i.e. /rest/resource/<address>
    */
-  private def addAuthHeaders(method:HttpMethodBase, relativeUrl:String) {
-    if(domain != "anonymous"){
+  private def addAuthHeaders(method: HttpMethodBase, relativeUrl: String) {
+    if (domain != "anonymous") {
 
       val cleanUrl = makeCleanUrl(relativeUrl)
 
@@ -415,7 +417,7 @@ class C3SystemImpl(val host:String,
 
       val hash = hmac(key, hashBase)
 
-      log.debug("Calculated hash {} for input parameters: {} ", hash,  Array(cleanUrl, domain, dateString))
+      log.debug("Calculated hash {} for input parameters: {} ", hash, Array(cleanUrl, domain, dateString))
 
       val header = new Header("x-c3-sign", hash)
       method.addRequestHeader(header)
@@ -429,7 +431,7 @@ class C3SystemImpl(val host:String,
     }
   }
 
-  private def hmac(key:String, input:String):String = {
+  private def hmac(key: String, input: String): String = {
 
     val mac = Mac.getInstance("HmacSHA256")
 
@@ -451,12 +453,12 @@ class C3SystemImpl(val host:String,
     hexString.toString()
   }
 
-  private def executeMethod[T](method:HttpMethodBase, f:Int => T):T = {
+  private def executeMethod[T](method: HttpMethodBase, f: Int => T): T = {
 
-    try{
+    try {
       val status = httpClient.executeMethod(method)
       f(status)
-    }finally{
+    } finally {
       method.releaseConnection()
     }
   }

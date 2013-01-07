@@ -9,11 +9,11 @@ import java.util.Date
 
 trait C3Version {
 
-  def date:Date
+  def date: Date
 
-  def metadata:Map[String, String]
+  def metadata: Map[String, String]
 
-  def getData:C3ByteChannel
+  def getData: C3ByteChannel
 
-  def getDataStream:C3InputStream
+  def getDataStream: C3InputStream
 }

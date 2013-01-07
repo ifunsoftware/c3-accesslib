@@ -11,20 +11,20 @@ import collection.mutable.ArrayBuffer
 
 object SearchResultEntryParser {
 
-  def parse(xml:NodeSeq):List[SearchResultEntry] = {
+  def parse(xml: NodeSeq): List[SearchResultEntry] = {
     (xml \\ "entry").map(parseEntry(_)).toList
   }
-  
-  private def parseEntry(entry:NodeSeq):SearchResultEntry = {
+
+  private def parseEntry(entry: NodeSeq): SearchResultEntry = {
     val address = (entry \ "@address").text
     val score = (entry \ "@score").text.toFloat
 
     val fragments = (entry \\ "fragment").map(parseFragment(_)).toList
-    
+
     SearchResultEntry(address, score, fragments)
   }
-  
-  private def parseFragment(fragment:NodeSeq):SearchResultFragment = {
+
+  private def parseFragment(fragment: NodeSeq): SearchResultFragment = {
     val name = (fragment \ "@field").text
 
     val strings = (fragment \\ "string").map(e => e.text).toList

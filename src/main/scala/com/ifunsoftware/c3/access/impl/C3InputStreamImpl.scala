@@ -4,13 +4,13 @@ import org.apache.commons.httpclient.HttpMethodBase
 import com.ifunsoftware.c3.access.C3InputStream
 
 
-class C3InputStreamImpl(val method:HttpMethodBase) extends C3InputStream{
+class C3InputStreamImpl(val method: HttpMethodBase) extends C3InputStream {
 
   private lazy val httpInput = method.getResponseBodyAsStream
 
   override def read() = httpInput.read()
 
-  override def read(b: Array[Byte]):Int = httpInput.read(b)
+  override def read(b: Array[Byte]): Int = httpInput.read(b)
 
   override def read(b: Array[Byte], off: Int, len: Int) = httpInput.read(b, off, len)
 
@@ -29,11 +29,11 @@ class C3InputStreamImpl(val method:HttpMethodBase) extends C3InputStream{
   override def markSupported() = httpInput.markSupported()
 
   def length = method.getResponseContentLength
-  
-  override def close(){
-    try{
+
+  override def close() {
+    try {
       httpInput.close()
-    }finally{
+    } finally {
       method.releaseConnection()
     }
   }

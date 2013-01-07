@@ -6,35 +6,36 @@ import com.ifunsoftware.c3.access.local._
 import com.ifunsoftware.c3.access.DataStream
 
 class LocalC3FileSystemNode(override val system: LocalC3System,
-                                     val resourceContainer:ResourceContainer,
-                                     val name: String,
-                                     var fullPath: String,
-                                     val isDirectory: Boolean
-                                     )
-      extends LocalC3Resource(system, resourceContainer) with C3FileSystemNode with C3File with C3Directory{
+                            val resourceContainer: ResourceContainer,
+                            val name: String,
+                            var fullPath: String,
+                            val isDirectory: Boolean
+                             )
+  extends LocalC3Resource(system, resourceContainer) with C3FileSystemNode with C3File with C3Directory {
 
   def this(system: LocalC3System, node: Node, fullPath: String) = this(system,
-                                                                      new LoadedResourceContainer(node.resource),
-                                                                      node.name,
-                                                                      fullPath,
-                                                                      node.isDirectory)
+    new LoadedResourceContainer(node.resource),
+    node.name,
+    fullPath,
+    node.isDirectory)
+
   def this(system: LocalC3System, nodeRef: NodeRef, fullPath: String) = this(system,
-                                                                             new LazyResourceContainer(system, nodeRef.address),
-                                                                             nodeRef.name,
-                                                                             fullPath,
-                                                                             !nodeRef.leaf)
+    new LazyResourceContainer(system, nodeRef.address),
+    nodeRef.name,
+    fullPath,
+    !nodeRef.leaf)
 
   var internalFSNode = new InternalFSNodeWrapper(system, resource, fullPath)
 
   override def asFile = if (!isDirectory)
-      this.asInstanceOf[C3File]
-    else
-      super.asFile
+    this.asInstanceOf[C3File]
+  else
+    super.asFile
 
   override def asDirectory = if (isDirectory)
-      this.asInstanceOf[C3Directory]
-    else
-      super.asDirectory
+    this.asInstanceOf[C3Directory]
+  else
+    super.asDirectory
 
   def fullname = fullPath
 
@@ -65,12 +66,12 @@ class LocalC3FileSystemNode(override val system: LocalC3System,
   }
 }
 
-class InternalFSNodeWrapper(system: LocalC3System, resourceContainer: ResourceContainer, fullPath: String){
+class InternalFSNodeWrapper(system: LocalC3System, resourceContainer: ResourceContainer, fullPath: String) {
 
   lazy val internalFSNode = Node.fromResource(resourceContainer.resource)
 
   lazy val children = internalFSNode.asInstanceOf[Directory].getChildren
-      .map(nodeRef => new LocalC3FileSystemNode(system, nodeRef, fullPath + "/" + nodeRef.name)).toList
+    .map(nodeRef => new LocalC3FileSystemNode(system, nodeRef, fullPath + "/" + nodeRef.name)).toList
 
 
   def getChild(name: String) = internalFSNode.asInstanceOf[Directory].getChild(name) match {

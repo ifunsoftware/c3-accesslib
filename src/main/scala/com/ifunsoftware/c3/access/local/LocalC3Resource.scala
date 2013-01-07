@@ -4,7 +4,7 @@ import com.ifunsoftware.c3.access.{DataStream, C3Resource}
 import org.aphreet.c3.platform.resource.{Resource, ResourceVersion}
 import org.aphreet.c3.platform.accesscontrol.UPDATE
 
-class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer) extends C3Resource with DataConverter{
+class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer) extends C3Resource with DataConverter {
 
   def this(system: LocalC3System, address: String) = this(system, new LazyResourceContainer(system, address))
 
@@ -26,7 +26,7 @@ class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer
 
     system.retrieveAccessTokens(UPDATE).checkAccess(resource)
 
-    if (data != null){
+    if (data != null) {
       resource.addVersion(ResourceVersion(data))
     }
 
@@ -46,13 +46,13 @@ class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer
   implicit def convertContainerToResource(container: ResourceContainer): Resource = container.resource
 }
 
-trait ResourceContainer{
+trait ResourceContainer {
 
-  def resource:Resource
+  def resource: Resource
 
 }
 
-class LazyResourceContainer(system: LocalC3System, address: String) extends ResourceContainer{
+class LazyResourceContainer(system: LocalC3System, address: String) extends ResourceContainer {
   lazy val resource = system.fetchResource(address)
 }
 

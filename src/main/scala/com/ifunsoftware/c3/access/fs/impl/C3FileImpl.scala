@@ -8,17 +8,16 @@ import com.ifunsoftware.c3.access.fs.{C3Directory, C3File}
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
  */
-class C3FileImpl(override val system:C3SystemImpl,
-                 override val address:String,
-                 override val xml:NodeSeq,
-                 override val _name:String,
-                 override val _fullname:String) extends C3FileSystemNodeImpl(system, address, xml, _name, _fullname) with C3File
-{
+class C3FileImpl(override val system: C3SystemImpl,
+                 override val address: String,
+                 override val xml: NodeSeq,
+                 override val _name: String,
+                 override val _fullname: String) extends C3FileSystemNodeImpl(system, address, xml, _name, _fullname) with C3File {
 
-  def this(system:C3SystemImpl, address:String, _name:String, _fullname:String) =
+  def this(system: C3SystemImpl, address: String, _name: String, _fullname: String) =
     this(system, address, null, _name, _fullname)
 
-  override def toString:String = {
+  override def toString: String = {
     val builder = new StringBuilder
 
     builder.append("[C3FileImpl name=").append(_name)
@@ -29,7 +28,7 @@ class C3FileImpl(override val system:C3SystemImpl,
     builder.toString()
   }
 
-  def isDirectory:Boolean = false
+  def isDirectory: Boolean = false
 
-  override def asFile:C3File = this
+  override def asFile: C3File = this
 }

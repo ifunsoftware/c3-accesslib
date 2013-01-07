@@ -3,13 +3,13 @@ package com.ifunsoftware.c3.access.local
 import com.ifunsoftware.c3.access.C3InputStream
 import org.aphreet.c3.platform.resource.DataStream
 
-class LocalC3InputStream(val ds:DataStream) extends C3InputStream{
+class LocalC3InputStream(val ds: DataStream) extends C3InputStream {
 
   private lazy val internalInputStream = ds.inputStream
 
   override def read() = internalInputStream.read()
 
-  override def read(b: Array[Byte]):Int = internalInputStream.read(b)
+  override def read(b: Array[Byte]): Int = internalInputStream.read(b)
 
   override def read(b: Array[Byte], off: Int, len: Int) = internalInputStream.read(b, off, len)
 
@@ -29,7 +29,7 @@ class LocalC3InputStream(val ds:DataStream) extends C3InputStream{
 
   def length = ds.length
 
-  override def close(){
+  override def close() {
     internalInputStream.close()
 
   }

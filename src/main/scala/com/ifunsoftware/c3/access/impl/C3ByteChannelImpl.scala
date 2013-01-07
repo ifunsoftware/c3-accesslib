@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
  * @author Mikhail Malygin
  */
 
-class C3ByteChannelImpl(val method:HttpMethodBase) extends C3ByteChannel {
+class C3ByteChannelImpl(val method: HttpMethodBase) extends C3ByteChannel {
 
   private val log = C3ByteChannelImpl.log
 
@@ -24,23 +24,23 @@ class C3ByteChannelImpl(val method:HttpMethodBase) extends C3ByteChannel {
     log.debug("Channel created {}", this)
   }
 
-  override def read(buffer:ByteBuffer):Int = inChannel.read(buffer)
+  override def read(buffer: ByteBuffer): Int = inChannel.read(buffer)
 
-  override def isOpen:Boolean = open
+  override def isOpen: Boolean = open
 
-  override def length:Long = method.getResponseContentLength
+  override def length: Long = method.getResponseContentLength
 
   override def close() {
-    try{
+    try {
       open = false
       inChannel.close()
-    }finally {
+    } finally {
       log.debug("Channel closed {}", this)
       method.releaseConnection()
     }
   }
-  
-  override def readContentAsString:String = {
+
+  override def readContentAsString: String = {
     val buffer = ByteBuffer.allocate(length.toInt)
     read(buffer)
     val content = new String(buffer.array(), "UTF-8")
@@ -49,8 +49,8 @@ class C3ByteChannelImpl(val method:HttpMethodBase) extends C3ByteChannel {
   }
 }
 
-object C3ByteChannelImpl{
+object C3ByteChannelImpl {
 
   val log = LoggerFactory.getLogger(classOf[C3ByteChannelImpl])
-  
+
 }

@@ -9,17 +9,19 @@ import fs.C3FileSystemNode
 
 trait C3System {
 
-  def getData(ra:String):C3ByteChannel
+  def getData(ra: String): C3ByteChannel
 
-  def getResource(ra:String, metadata:List[String] = List()):C3Resource
+  def getResource(ra: String, metadata: List[String] = List()): C3Resource
 
-  def addResource(meta:Map[String, String], data:DataStream):String
+  def addResource(meta: Map[String, String], data: DataStream): String
 
-  def getFile(name:String):C3FileSystemNode
+  def getFile(name: String): C3FileSystemNode
 
-  def deleteResource(ra:String)
+  def deleteResource(ra: String)
 
-  def deleteFile(name:String)
-  
-  def search(query:String):List[SearchResultEntry]
+  def deleteFile(name: String)
+
+  def search(query: String): List[SearchResultEntry]
+
+  //def query(fields: Map)
 }

@@ -12,62 +12,72 @@ import org.slf4j.LoggerFactory
  * @author Mikhail Malygin
  */
 
-class C3ResourceImpl(val system:C3SystemImpl, var _address:String, val xml:NodeSeq) extends C3Resource{
+class C3ResourceImpl(val system: C3SystemImpl, var _address: String, val xml: NodeSeq) extends C3Resource {
 
   private val log = C3ResourceImpl.log
 
-  private var _date:Date = null
+  private var _date: Date = null
 
-  private var _tracksVersions:Boolean = false
+  private var _tracksVersions: Boolean = false
 
-  protected var _metadata:Map[String, String] = null
+  protected var _metadata: Map[String, String] = null
 
-  private var _systemMetadata:Map[String, String] = null
+  private var _systemMetadata: Map[String, String] = null
 
-  protected var _versions:List[C3Version] = null
+  protected var _versions: List[C3Version] = null
 
   protected var loaded = false
 
   {
-    if(xml != null){
+    if (xml != null) {
       updateFieldsFromXmlDescription(xml)
     }
   }
 
-  def this(system:C3SystemImpl, address:String) = this(system, address, null)
+  def this(system: C3SystemImpl, address: String) = this(system, address, null)
 
-  override def address:String = _address
+  override def address: String = _address
 
-  override def date:Date = preload{_date}
+  override def date: Date = preload {
+    _date
+  }
 
-  override def tracksVersions:Boolean = preload{_tracksVersions}
+  override def tracksVersions: Boolean = preload {
+    _tracksVersions
+  }
 
-  override def metadata:Map[String, String] = preload{_metadata}
+  override def metadata: Map[String, String] = preload {
+    _metadata
+  }
 
-  override def systemMetadata:Map[String,  String] = preload{_systemMetadata}
+  override def systemMetadata: Map[String, String] = preload {
+    _systemMetadata
+  }
 
-  override def versions:List[C3Version] = preload{_versions}
+  override def versions: List[C3Version] = preload {
+    _versions
+  }
 
 
-  override def update(meta:Map[String, String], data:DataStream) {
+  override def update(meta: Map[String, String], data: DataStream) {
     system.updateResource(address, meta, data)
     loaded = false
   }
 
-  override def update(meta:Map[String, String]){
+  override def update(meta: Map[String, String]) {
     update(meta, null)
   }
 
-  override def update(data:DataStream) {
+  override def update(data: DataStream) {
     update(Map(), data)
   }
 
 
-  override def toString:String = {
+  override def toString: String = {
 
     val builder = new StringBuilder
 
-    if(loaded){
+    if (loaded) {
       builder.append("C3ResourceImpl[address=").append(address)
         .append(", date=").append(date.getTime)
         .append(", trackVersions=").append(tracksVersions)
@@ -75,16 +85,16 @@ class C3ResourceImpl(val system:C3SystemImpl, var _address:String, val xml:NodeS
         .append(", sysmeta=").append(systemMetadata)
         .append(", versions=").append(versions)
         .append("]")
-    }else{
+    } else {
       builder.append("C3ResourceImpl[address=").append(address).append("]")
     }
 
     builder.toString()
   }
 
-  private def updateFieldsFromXmlDescription(xmlDescription:NodeSeq) {
-    try{
-      val resourceTag = (xmlDescription \ "resource") (0)
+  private def updateFieldsFromXmlDescription(xmlDescription: NodeSeq) {
+    try {
+      val resourceTag = (xmlDescription \ "resource")(0)
 
       _address = (resourceTag \ "@address").text
 
@@ -92,11 +102,11 @@ class C3ResourceImpl(val system:C3SystemImpl, var _address:String, val xml:NodeS
 
       _tracksVersions = (resourceTag \ "@trackVersions").text.toBoolean
 
-      val metadataTag = (resourceTag \ "metadata") (0)
+      val metadataTag = (resourceTag \ "metadata")(0)
 
       _metadata = parseMetadata(metadataTag)
 
-      val sysMetaTag = (resourceTag \ "systemMetadata") (0)
+      val sysMetaTag = (resourceTag \ "systemMetadata")(0)
 
       _systemMetadata = parseMetadata(sysMetaTag)
 
@@ -106,11 +116,11 @@ class C3ResourceImpl(val system:C3SystemImpl, var _address:String, val xml:NodeS
 
       var number = 1
 
-      for(versionTag <- versionsTag \ "version"){
+      for (versionTag <- versionsTag \ "version") {
 
         val versionDate = ISODateTimeFormat.dateTime().parseDateTime((versionTag \ "@date").text).toDate
 
-        val versionMeta = parseMetadata((versionTag \ "systemMetadata") (0))
+        val versionMeta = parseMetadata((versionTag \ "systemMetadata")(0))
 
         val versionNumber = number
 
@@ -122,13 +132,13 @@ class C3ResourceImpl(val system:C3SystemImpl, var _address:String, val xml:NodeS
       _versions = array.toList
 
       loaded = true
-    }catch{
-      case e => throw new C3AccessException("Failed to parse resource xml", e)
+    } catch {
+      case e: Throwable => throw new C3AccessException("Failed to parse resource xml", e)
     }
   }
 
-  protected def preload[T](value: => T):T = {
-    if(!loaded){
+  protected def preload[T](value: => T): T = {
+    if (!loaded) {
 
       log.debug("Resource {} is not loaded yet, loading...", address)
 
@@ -137,13 +147,13 @@ class C3ResourceImpl(val system:C3SystemImpl, var _address:String, val xml:NodeS
     value
   }
 
-  private def parseMetadata(metadataTag:NodeSeq):Map[String,  String] = {
+  private def parseMetadata(metadataTag: NodeSeq): Map[String, String] = {
     (metadataTag \ "element").map(e => ((e \ "@key").text, (e \ "value")(0).text)).toMap
   }
 }
 
-object C3ResourceImpl{
+object C3ResourceImpl {
 
   val log = LoggerFactory.getLogger(classOf[C3ResourceImpl])
-  
+
 }

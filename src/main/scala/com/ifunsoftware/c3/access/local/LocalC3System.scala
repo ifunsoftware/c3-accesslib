@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import org.aphreet.c3.platform.domain.DomainManager
 import org.aphreet.c3.platform.search.SearchManager
 
-class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3System with DataConverter{
+class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3System with DataConverter {
 
   val accessManager = resolveService(classOf[AccessManager])
 
@@ -36,7 +36,7 @@ class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3Syst
 
   val accessControlParams = Map("domain" -> domainId)
 
-  def fetchResource(ra: String):Resource = {
+  def fetchResource(ra: String): Resource = {
     accessManager.getOption(ra) match {
       case Some(resource) => {
         retrieveAccessTokens(READ).checkAccess(resource)
@@ -58,7 +58,7 @@ class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3Syst
     }
   }
 
-  def getResource(ra: String, metadata: List[String]):C3Resource = {
+  def getResource(ra: String, metadata: List[String]): C3Resource = {
     new LocalC3Resource(this, ra)
   }
 
@@ -105,22 +105,22 @@ class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3Syst
     fsManager.deleteNode(domainId, name)
   }
 
-  def retrieveAccessTokens(action:Action):AccessTokens = {
+  def retrieveAccessTokens(action: Action): AccessTokens = {
     accessControlManager.retrieveAccessTokens(LocalAccess, action, accessControlParams)
   }
 
-  def update(resource:Resource) {
+  def update(resource: Resource) {
     accessManager.update(resource)
   }
 
-  def createDirectory(fullName:String){
+  def createDirectory(fullName: String) {
 
     retrieveAccessTokens(CREATE)
 
     fsManager.createDirectory(domainId, fullName)
   }
 
-  def createFile(fullName:String, meta: Map[String, String], data: DataStream){
+  def createFile(fullName: String, meta: Map[String, String], data: DataStream) {
 
     val accessTokens = retrieveAccessTokens(CREATE)
 
@@ -131,21 +131,21 @@ class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3Syst
 
     accessTokens.updateMetadata(resource)
 
-    fsManager.createFile(domainId ,fullName, resource)
+    fsManager.createFile(domainId, fullName, resource)
   }
 
-  def move(oldPath: String, newPath: String){
+  def move(oldPath: String, newPath: String) {
     fsManager.moveNode(domainId, oldPath, newPath)
   }
 
-  def search(query: String):List[SearchResultEntry] = {
+  def search(query: String): List[SearchResultEntry] = {
     searchManager.search(domainId, query)
       .map(element => SearchResultEntry(element.address, element.score, element.fragments.map(
       fragment => SearchResultFragment(fragment.field, fragment.foundStrings.toList)).toList
     )).toList
   }
 
-  def resolveService[T](clazz:Class[T]):T = {
+  def resolveService[T](clazz: Class[T]): T = {
 
     LocalC3System.log.info("Resolving service {}", clazz.getCanonicalName)
 
@@ -157,7 +157,7 @@ class LocalC3System(val domain: String, val bundleContext:AnyRef) extends C3Syst
   }
 }
 
-object LocalC3System{
+object LocalC3System {
 
   val log = LoggerFactory.getLogger(classOf[LocalC3System])
 }

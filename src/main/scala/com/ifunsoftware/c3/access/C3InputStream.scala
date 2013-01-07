@@ -6,8 +6,8 @@ import java.io.InputStream
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
  */
-abstract class C3InputStream extends InputStream{
+abstract class C3InputStream extends InputStream {
 
-  def length:Long
+  def length: Long
 
 }

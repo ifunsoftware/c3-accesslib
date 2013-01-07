@@ -11,15 +11,15 @@ import java.io.File
 
 trait DataStream {
 
-  def createFilePart:FilePart
+  def createFilePart: FilePart
 
 }
 
-object DataStream{
+object DataStream {
 
-  def apply(file:File):DataStream = new FileDataStream(file)
+  def apply(file: File): DataStream = new FileDataStream(file)
 
-  def apply(array:Array[Byte]):DataStream = new ByteArrayDataStream(array)
+  def apply(array: Array[Byte]): DataStream = new ByteArrayDataStream(array)
 
-  def apply(string:String):DataStream = new ByteArrayDataStream(string.getBytes("UTF-8"))
+  def apply(string: String): DataStream = new ByteArrayDataStream(string.getBytes("UTF-8"))
 }

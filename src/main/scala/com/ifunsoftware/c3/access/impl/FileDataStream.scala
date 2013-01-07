@@ -9,8 +9,8 @@ import org.apache.commons.httpclient.methods.multipart.{FilePartSource, FilePart
  * @author Mikhail Malygin
  */
 
-case class FileDataStream(file:File) extends DataStream {
+case class FileDataStream(file: File) extends DataStream {
 
-  override def createFilePart:FilePart = new FilePart("data", new FilePartSource(file))
-  
+  override def createFilePart: FilePart = new FilePart("data", new FilePartSource(file))
+
 }
