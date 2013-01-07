@@ -10,12 +10,12 @@ import org.apache.commons.httpclient.methods.multipart.{MultipartRequestEntity, 
 import xml.{NodeSeq, XML}
 import com.ifunsoftware.c3.access.fs.C3FileSystemNode
 import com.ifunsoftware.c3.access.fs.impl.{C3FileImpl, C3DirectoryImpl}
-import java.io.InputStreamReader
+import java.io.{BufferedReader, InputStreamReader}
 import java.nio.CharBuffer
 import org.apache.commons.httpclient.methods._
 import org.apache.commons.httpclient._
 import java.net.{URL, URLEncoder}
-import params.HttpConnectionManagerParams
+import params.{HttpMethodParams, HttpConnectionManagerParams}
 
 /**
  * Copyright iFunSoftware 2011
@@ -139,17 +139,17 @@ class C3SystemImpl(val host: String,
     })
   }
 
-  override def addResource(meta: Map[String, String], data: DataStream): String = {
+  override def addResource(meta: Metadata, data: DataStream): String = {
     addDataInternal(resourceRequestUri, meta, data)
   }
 
-  def addFile(fullname: String, meta: Map[String, String], data: DataStream): String = {
+  def addFile(fullname: String, meta: Metadata, data: DataStream): String = {
     val relativeUrl = fileRequestUri + fullname
 
     addDataInternal(relativeUrl, meta, data)
   }
 
-  private def addDataInternal(relativeUrl: String, meta: Map[String, String], data: DataStream): String = {
+  private def addDataInternal(relativeUrl: String, meta: Metadata, data: DataStream): String = {
 
     val method = createPostMethod(relativeUrl)
 
@@ -201,7 +201,7 @@ class C3SystemImpl(val host: String,
 
   }
 
-  def updateResource(address: String, meta: Map[String, String], data: DataStream): Int = {
+  def updateResource(address: String, meta: Metadata, data: DataStream): Int = {
 
     val method = createPutMethod(resourceRequestUri + address)
 
@@ -301,7 +301,7 @@ class C3SystemImpl(val host: String,
     })
   }
 
-  protected def createPartsArray(meta: Map[String, String], data: DataStream): Array[Part] = {
+  protected def createPartsArray(meta: Metadata, data: DataStream): Array[Part] = {
 
     var parts: List[Part] = meta.map(e => {
       val part = new StringPart(e._1, e._2, "UTF-16")
@@ -374,6 +374,34 @@ class C3SystemImpl(val host: String,
     addAuthHeaders(method, relativeUrl)
 
     method
+  }
+
+  def query(meta: Metadata, function: (String) => Unit) {
+    val method = new GetMethod(host + "/rest/query")
+
+    method.setQueryString(meta.map(e => new NameValuePair(e._1, e._2)).toArray)
+
+    addAuthHeaders(method, "/rest/query")
+
+    executeMethod(method, status =>
+      status match {
+        case HttpStatus.SC_OK => {
+          val reader = new BufferedReader(new InputStreamReader(method.getResponseBodyAsStream))
+
+          try {
+            var line = reader.readLine()
+
+            while(line != null){
+              function(line)
+              line = reader.readLine()
+            }
+          }finally {
+            reader.close()
+          }
+        }
+        case _ => throw new C3AccessException("Failed to execute query, status is " + status, status)
+      }
+    )
   }
 
   private def createPostMethod(relativeUrl: String): PostMethod = {

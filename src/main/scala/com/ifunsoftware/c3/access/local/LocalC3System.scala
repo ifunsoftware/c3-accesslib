@@ -11,6 +11,7 @@ import org.osgi.framework.BundleContext
 import org.slf4j.LoggerFactory
 import org.aphreet.c3.platform.domain.DomainManager
 import org.aphreet.c3.platform.search.SearchManager
+import org.aphreet.c3.platform.query.{QueryConsumer, QueryManager}
 
 class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3System with DataConverter {
 
@@ -23,6 +24,8 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
   val domainManager = resolveService(classOf[DomainManager])
 
   val searchManager = resolveService(classOf[SearchManager])
+
+  val queryManager = resolveService(classOf[QueryManager])
 
   val domainId = {
     domainManager.domainById(domain) match {
@@ -62,7 +65,7 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     new LocalC3Resource(this, ra)
   }
 
-  def addResource(meta: Map[String, String], data: DataStream): String = {
+  def addResource(meta: Metadata, data: DataStream): String = {
 
     val accessTokens = retrieveAccessTokens(CREATE)
 
@@ -120,7 +123,7 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     fsManager.createDirectory(domainId, fullName)
   }
 
-  def createFile(fullName: String, meta: Map[String, String], data: DataStream) {
+  def createFile(fullName: String, meta: Metadata, data: DataStream) {
 
     val accessTokens = retrieveAccessTokens(CREATE)
 
@@ -143,6 +146,16 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
       .map(element => SearchResultEntry(element.address, element.score, element.fragments.map(
       fragment => SearchResultFragment(fragment.field, fragment.foundStrings.toList)).toList
     )).toList
+  }
+
+  def query(meta: Metadata, function: (String) => Unit) {
+    queryManager.executeQuery(fields = meta, systemFields = Map(), consumer = new QueryConsumer {
+      def close() {}
+
+      def addResource(resource: Resource){
+        function(resource.address)
+      }
+    })
   }
 
   def resolveService[T](clazz: Class[T]): T = {

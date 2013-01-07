@@ -9,11 +9,13 @@ import fs.C3FileSystemNode
 
 trait C3System {
 
+  type Metadata = Map[String, String]
+
   def getData(ra: String): C3ByteChannel
 
   def getResource(ra: String, metadata: List[String] = List()): C3Resource
 
-  def addResource(meta: Map[String, String], data: DataStream): String
+  def addResource(meta: Metadata, data: DataStream): String
 
   def getFile(name: String): C3FileSystemNode
 
@@ -23,5 +25,5 @@ trait C3System {
 
   def search(query: String): List[SearchResultEntry]
 
-  //def query(fields: Map)
+  def query(meta: Metadata, function: (String) => Unit)
 }

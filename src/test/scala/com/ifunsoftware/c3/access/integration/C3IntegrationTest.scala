@@ -29,6 +29,15 @@ class C3IntegrationTest {
     checkResourceDelete(address)
   }
 
+  @Test
+  def testQuery() {
+    val system = createSystem()
+
+    system.query(Map("content.type" -> "application/x-c3-directory"), address => {
+      println(address)
+    })
+  }
+
   def createSystem() = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS, C3_DOMAIN, C3_KEY)
 
   //@Test
