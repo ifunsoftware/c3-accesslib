@@ -47,6 +47,17 @@ class C3ByteChannelImpl(val method: HttpMethodBase) extends C3ByteChannel {
     close()
     content
   }
+
+  override def finalize(){
+    if (open){
+      try{
+        log.warn("Finalizing opened ByteChannel. This looks like a bug")
+        close()
+      }catch{
+        case e: Throwable =>
+      }
+    }
+  }
 }
 
 object C3ByteChannelImpl {
