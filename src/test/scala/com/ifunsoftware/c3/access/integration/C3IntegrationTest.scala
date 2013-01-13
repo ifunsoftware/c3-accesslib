@@ -33,7 +33,7 @@ class C3IntegrationTest {
   def testQuery() {
     val system = createSystem()
 
-    system.query(Map("content.type" -> "application/x-c3-directory"), address => {
+    system.query(Map("content.type" -> "application/x-c3-directory"), (address, meta) => {
       println(address)
     })
   }

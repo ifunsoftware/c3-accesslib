@@ -7,15 +7,19 @@ import javax.crypto.Mac
 import org.slf4j.LoggerFactory
 import com.ifunsoftware.c3.access._
 import org.apache.commons.httpclient.methods.multipart.{MultipartRequestEntity, StringPart, Part}
-import xml.{NodeSeq, XML}
+import xml._
 import com.ifunsoftware.c3.access.fs.C3FileSystemNode
 import com.ifunsoftware.c3.access.fs.impl.{C3FileImpl, C3DirectoryImpl}
-import java.io.{BufferedReader, InputStreamReader}
+import java.io.{BufferedInputStream, InputStreamReader}
 import java.nio.CharBuffer
 import org.apache.commons.httpclient.methods._
 import org.apache.commons.httpclient._
 import java.net.{URL, URLEncoder}
-import params.{HttpMethodParams, HttpConnectionManagerParams}
+import params.HttpConnectionManagerParams
+import io.Source
+import scala.Some
+import com.ifunsoftware.c3.access.SearchResultEntry
+import scala.xml.pull._
 
 /**
  * Copyright iFunSoftware 2011
@@ -376,7 +380,8 @@ class C3SystemImpl(val host: String,
     method
   }
 
-  def query(meta: Metadata, function: (String) => Unit) {
+  def query(meta: Metadata, function: (String, Metadata) => Unit) {
+
     val method = new GetMethod(host + "/rest/query")
 
     method.setQueryString(meta.map(e => new NameValuePair(e._1, e._2)).toArray)
@@ -386,17 +391,40 @@ class C3SystemImpl(val host: String,
     executeMethod(method, status =>
       status match {
         case HttpStatus.SC_OK => {
-          val reader = new BufferedReader(new InputStreamReader(method.getResponseBodyAsStream))
+          val source = Source.fromInputStream(new BufferedInputStream(method.getResponseBodyAsStream))
+          val er = new XMLEventReader(source)
+
+          def processResourceXml(xml: Node){
+            val resourceTag = (xml \ "resource")(0)
+            val _address = (resourceTag \ "@address").text
+            val resource = new C3ResourceImpl(this, _address, xml)
+            function(resource.address, resource.metadata ++ resource.systemMetadata)
+          }
 
           try {
-            var line = reader.readLine()
+            var resourceData: StringBuilder = new StringBuilder
 
-            while(line != null){
-              function(line)
-              line = reader.readLine()
+            while (er.hasNext) {
+              er.next() match {
+                case EvElemStart(_, "resources", _, _) => // Do nothing
+                case EvElemEnd(_, "resources") => // Do nothing
+                case x @ EvElemEnd(_, "resource") =>
+                  resourceData append backToXml(x)
+                  val resourceNode = XML.loadString(wrapResourceXmlData(resourceData.result()))
+                  processResourceXml(resourceNode)
+                  resourceData = new StringBuilder
+                case x @ EvElemStart(_, label, _, _) =>
+                  resourceData append backToXml(x)
+                case x @ EvElemEnd(_, label) =>
+                  resourceData append backToXml(x)
+                case EvText(text) if resourceData != null =>
+                  resourceData append text
+                case EvEntityRef(entity) => // TODO
+                case _ => // ignore everything else
+              }
             }
-          }finally {
-            reader.close()
+          } finally {
+            source.close()
           }
         }
         case _ => throw new C3AccessException("Failed to execute query, status is " + status, status)
@@ -489,5 +517,34 @@ class C3SystemImpl(val host: String,
     } finally {
       method.releaseConnection()
     }
+  }
+
+  // xml streaming helpers
+  private def backToXml(ev: XMLEvent) = {
+    ev match {
+      case EvElemStart(pre, label, attrs, scope) => {
+        "<" + label + attrsToString(attrs) + ">"
+      }
+      case EvElemEnd(pre, label) => {
+        "</" + label + ">"
+      }
+      case _ => ""
+    }
+  }
+
+  private def attrsToString(attrs: MetaData) = {
+    attrs.length match {
+      case 0 => ""
+      case _ => attrs.map( (m:MetaData) => " " + m.key + "='" + m.value +"'" ).reduceLeft(_+_)
+    }
+  }
+
+  private def wrapResourceXmlData(data: String) = {
+    // That's ugly a bit. TODO refactor
+    """<?xml version="1.0" encoding="UTF-8"?>
+       <p:response xmlns:p="http://c3.aphreet.org/rest/1.0" xsi:schemaLocation="http://c3.aphreet.org/rest/1.0 http://c3-system.googlecode.com/files/rest.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+       <info version="1.0" status="OK"/>
+    """ + data +
+    "</p:response>"
   }
 }

@@ -25,5 +25,5 @@ trait C3System {
 
   def search(query: String): List[SearchResultEntry]
 
-  def query(meta: Metadata, function: (String) => Unit)
+  def query(meta: Metadata, function: (String, Metadata) => Unit)
 }
