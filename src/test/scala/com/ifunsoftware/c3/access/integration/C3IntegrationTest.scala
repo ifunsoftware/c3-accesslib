@@ -10,7 +10,7 @@ import org.junit.{Ignore, Test}
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
  */
-//@Ignore
+@Ignore
 class C3IntegrationTest {
 
   val C3_SYSTEM_ADDRESS = "http://node0.c3.ifunsoftware.com"
