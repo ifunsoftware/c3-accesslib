@@ -9,7 +9,7 @@ import org.aphreet.c3.platform.filesystem.FSManager
 import scala.Some
 import org.osgi.framework.BundleContext
 import org.slf4j.LoggerFactory
-import org.aphreet.c3.platform.domain.DomainManager
+import org.aphreet.c3.platform.domain.{Domain, DomainManager}
 import org.aphreet.c3.platform.search.SearchManager
 import org.aphreet.c3.platform.query.{QueryConsumer, QueryManager}
 
@@ -149,7 +149,7 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
   }
 
   def query(meta: Metadata, function: (String, Metadata) => Unit) {
-    queryManager.executeQuery(fields = meta, systemFields = Map(), consumer = new QueryConsumer {
+    queryManager.executeQuery(fields = meta, systemFields = Map(Domain.MD_FIELD -> domainId), consumer = new QueryConsumer {
       def close() {}
 
       def consume(resource: Resource) {
