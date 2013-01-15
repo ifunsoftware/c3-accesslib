@@ -7,7 +7,9 @@ class LocalC3Version(val version: ResourceVersion) extends C3Version {
 
   def date = version.date
 
-  def metadata = version.systemMetadata.toMap
+  def length = version.systemMetadata.getOrElse("c3.data.length", "0").toLong
+
+  def hash = version.systemMetadata.getOrElse("c3.data.hash", "")
 
   def getData = new LocalC3ByteChannel(version.data)
 

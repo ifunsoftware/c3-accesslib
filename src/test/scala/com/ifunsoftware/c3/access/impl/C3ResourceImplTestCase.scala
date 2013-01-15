@@ -42,16 +42,7 @@ class C3ResourceImplTestCase {
       </element>
     </systemMetadata>
     <versions>
-      <version date="2011-02-12T02:03:06.209+03:00">
-        <systemMetadata>
-          <element key="c3.data.address">
-            <value>be7300eb-c518-40b1-a384-a4dc49359844-f579-data-1297465386210-57afa880c698760302978bb117c0b96b</value>
-          </element>
-          <element key="c3.data.md5">
-            <value>57afa880c698760302978bb117c0b96b</value>
-          </element>
-        </systemMetadata>
-      </version>
+      <version date="2011-02-12T02:03:06.209+03:00" length="102400" hash="57afa880c698760302978bb117c0b96b"/>
     </versions>
   </resource>
 </p:response>"""))
@@ -81,10 +72,8 @@ class C3ResourceImplTestCase {
 
     assertEquals(1297465386209l, version.date.getTime)
 
-    assertEquals(
-      Map("c3.data.address" -> "be7300eb-c518-40b1-a384-a4dc49359844-f579-data-1297465386210-57afa880c698760302978bb117c0b96b",
-        "c3.data.md5" -> "57afa880c698760302978bb117c0b96b"),
-      version.metadata)
+    assertEquals(version.length, 102400)
+    assertEquals(version.hash, "57afa880c698760302978bb117c0b96b")
 
     assertEquals(1, version.asInstanceOf[C3VersionImpl]._number)
   }

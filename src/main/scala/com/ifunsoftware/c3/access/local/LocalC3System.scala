@@ -152,7 +152,7 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     queryManager.executeQuery(fields = meta, systemFields = Map(Domain.MD_FIELD -> domainId), consumer = new QueryConsumer {
       def close() {}
 
-      def consume(resource: Resource) {
+      def consume(resource: Resource): Boolean = {
         function(resource.address, (resource.systemMetadata ++ resource.metadata).toMap)
         true
       }

@@ -11,7 +11,9 @@ trait C3Version {
 
   def date: Date
 
-  def metadata: Map[String, String]
+  def length: Long
+
+  def hash: String
 
   def getData: C3ByteChannel
 

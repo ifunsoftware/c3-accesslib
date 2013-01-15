@@ -38,7 +38,7 @@ class C3IntegrationTest {
     })
   }
 
-  def createSystem() = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS, C3_DOMAIN, C3_KEY)
+  def createSystem() = new C3SystemFactory().createSystem("http://localhost:7373") //new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS, C3_DOMAIN, C3_KEY)
 
   //@Test
   def testDelete(){

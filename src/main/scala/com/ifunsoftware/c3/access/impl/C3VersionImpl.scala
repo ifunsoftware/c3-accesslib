@@ -11,12 +11,11 @@ import com.ifunsoftware.c3.access.{C3InputStream, C3ByteChannel, C3Version}
 class C3VersionImpl(val system: C3SystemImpl,
                     val resource: C3ResourceImpl,
                     val _date: Date,
-                    val _metadata: Map[String, String],
+                    val length: Long,
+                    val hash: String,
                     val _number: Int) extends C3Version {
 
   def date: Date = _date
-
-  def metadata: Map[String, String] = _metadata
 
   def getData: C3ByteChannel = system.getDataInternal(resource.address, _number)
 
@@ -27,7 +26,8 @@ class C3VersionImpl(val system: C3SystemImpl,
 
     builder.append("C3VersionImpl[number=").append(_number)
       .append(", date=").append(date.getTime)
-      .append(", meta=").append(metadata)
+      .append(", length=").append(length)
+      .append(", hash=").append(hash)
       .append("]")
 
     builder.toString()

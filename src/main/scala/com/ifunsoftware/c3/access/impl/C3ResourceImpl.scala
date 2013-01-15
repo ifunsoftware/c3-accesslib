@@ -120,11 +120,13 @@ class C3ResourceImpl(val system: C3SystemImpl, var _address: String, val xml: No
 
         val versionDate = ISODateTimeFormat.dateTime().parseDateTime((versionTag \ "@date").text).toDate
 
-        val versionMeta = parseMetadata((versionTag \ "systemMetadata")(0))
+        val dataLength = (versionTag \ "@length").text.toLong
+
+        val dataHash = (versionTag \ "@hash").text
 
         val versionNumber = number
 
-        array += (new C3VersionImpl(system, this, versionDate, versionMeta, versionNumber))
+        array += (new C3VersionImpl(system, this, versionDate, dataLength, dataHash, versionNumber))
 
         number = number + 1
       }

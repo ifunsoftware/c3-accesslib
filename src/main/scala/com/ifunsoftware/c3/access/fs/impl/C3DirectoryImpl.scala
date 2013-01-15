@@ -113,15 +113,18 @@ with C3Directory {
           val file: C3FileImpl = new C3FileImpl(system, childAddress, null, childName, childFullName) {
             _metadata = childMetaData
             loaded = true
-            _versions = List(new C3VersionImpl(system, this, null, Map(), 0) {
-              private val data = new String(C3Base64Decoder.decodeBuffer(childData.text))
+            _versions = List(new C3VersionImpl(this.system, this, null, 0, null, 0) {
 
-              private val inputStream = new ByteArrayInputStream(data.getBytes("UTF-8"))
+              private val data = C3Base64Decoder.decodeBuffer(childData.text)
+
+              override val length: Long = data.length
+
+              private val inputStream = new ByteArrayInputStream(data)
 
               override def getData: C3ByteChannel = new C3ByteChannel {
                 override def length: Long = data.length
 
-                def readContentAsString: String = data
+                def readContentAsString: String = new String(data, "UTF-8")
 
                 def isOpen = false
 
@@ -131,7 +134,7 @@ with C3Directory {
               }
 
               override def getDataStream: C3InputStream = new C3InputStream {
-                override def length = data.getBytes.length
+                override def length = data.length
 
                 override def read() = inputStream.read()
 
