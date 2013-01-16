@@ -15,6 +15,8 @@ import org.aphreet.c3.platform.query.{QueryConsumer, QueryManager}
 
 class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3System with DataConverter {
 
+  thisC3system =>
+
   val accessManager = resolveService(classOf[AccessManager])
 
   val fsManager = resolveService(classOf[FSManager])
@@ -148,12 +150,13 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     )).toList
   }
 
-  def query(meta: Metadata, function: (String, Metadata) => Unit) {
+  def query(meta: Metadata, function: C3Resource => Unit) {
     queryManager.executeQuery(fields = meta, systemFields = Map(Domain.MD_FIELD -> domainId), consumer = new QueryConsumer {
       def close() {}
 
       def consume(resource: Resource): Boolean = {
-        function(resource.address, (resource.systemMetadata ++ resource.metadata).toMap)
+        val c3resource = new LocalC3Resource(thisC3system, resource)
+        function(c3resource)
         true
       }
     })

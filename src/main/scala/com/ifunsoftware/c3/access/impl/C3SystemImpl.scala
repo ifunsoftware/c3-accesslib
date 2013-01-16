@@ -380,7 +380,7 @@ class C3SystemImpl(val host: String,
     method
   }
 
-  def query(meta: Metadata, function: (String, Metadata) => Unit) {
+  def query(meta: Metadata, function: C3Resource => Unit) {
 
     val method = new GetMethod(host + "/rest/query")
 
@@ -398,7 +398,7 @@ class C3SystemImpl(val host: String,
             val resourceTag = (xml \ "resource")(0)
             val _address = (resourceTag \ "@address").text
             val resource = new C3ResourceImpl(this, _address, xml)
-            function(resource.address, resource.metadata ++ resource.systemMetadata)
+            function(resource)
           }
 
           try {
