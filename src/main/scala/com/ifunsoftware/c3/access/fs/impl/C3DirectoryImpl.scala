@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import com.ifunsoftware.c3.access.fs.{C3FileSystemNode, C3Directory}
 import java.nio.ByteBuffer
 import java.io.ByteArrayInputStream
+import org.joda.time.format.ISODateTimeFormat
 
 /**
  * Copyright iFunSoftware 2011
@@ -113,7 +114,10 @@ with C3Directory {
           val file: C3FileImpl = new C3FileImpl(system, childAddress, null, childName, childFullName) {
             _metadata = childMetaData
             loaded = true
-            _versions = List(new C3VersionImpl(this.system, this, null, 0, null, 0) {
+
+            val createDate = ISODateTimeFormat.dateTime().parseDateTime((childData \ "@date").text).toDate
+
+            _versions = List(new C3VersionImpl(this.system, this, createDate, 0, null, 0) {
 
               private val data = C3Base64Decoder.decodeBuffer(childData.text)
 
