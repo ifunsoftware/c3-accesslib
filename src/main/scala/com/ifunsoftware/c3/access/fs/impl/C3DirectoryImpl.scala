@@ -45,10 +45,8 @@ with C3Directory {
     }
   }
 
-  override def createDirectory(name: String) {
-
-    system.addDirectory(fullname + "/" + name)
-
+  override def createDirectory(dirName: String) {
+    system.addDirectory(createFullPath(fullname, dirName))
     directoryLoaded = false
   }
 
@@ -57,7 +55,7 @@ with C3Directory {
   override def asDirectory: C3Directory = this
 
   override def createFile(name: String, meta: Map[String, String], data: DataStream) {
-    system.addFile(fullname + "/" + name, meta, data)
+    system.addFile(createFullPath(fullname, name), meta, data)
 
     directoryLoaded = false
   }
@@ -197,6 +195,13 @@ with C3Directory {
       .append("]")
 
     builder.toString()
+  }
+
+  private def createFullPath(basePath: String, name: String): String = {
+    (basePath match {
+      case "/" => ""  // this is workaround for files under root "/" directory: /rest/fs//name
+      case path => path
+    }) + "/" + name
   }
 }
 
