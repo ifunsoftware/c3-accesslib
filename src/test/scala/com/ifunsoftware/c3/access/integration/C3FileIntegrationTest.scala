@@ -11,25 +11,25 @@ import io.Source
  * @author Mikhail Malygin
  */
 
-@Ignore
+//@Ignore
 class C3FileIntegrationTest {
 
   @Test
   def testFileSystemCRUD(){
 
-    val C3_SYSTEM_ADDRESS = "http://node0.c3.ifunsoftware.com"
+    val C3_SYSTEM_ADDRESS = "http://localhost:7373"
 
     val C3_DOMAIN = "aphreet"
 
     val C3_KEY = "e14ebc01610f9273fbe12e118d662f37"
 
-    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS, domain = C3_DOMAIN, key = C3_KEY)
+    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
 
     val node = system.getFile("/")
 
     val dir = node.asInstanceOf[C3Directory]
 
-    val directoryName = "inttest-" + System.currentTimeMillis()
+    val directoryName = "inttest " + System.currentTimeMillis()
 
     dir.createDirectory(directoryName)
 

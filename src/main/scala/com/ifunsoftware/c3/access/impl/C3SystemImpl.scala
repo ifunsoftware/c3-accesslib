@@ -111,7 +111,7 @@ class C3SystemImpl(val host: String,
   override def getResource(ra: String, metadata: List[String] = List()): C3Resource = new C3ResourceImpl(this, ra, getMetadataForAddress(ra, metadata))
 
   override def getFile(fullname: String): C3FileSystemNode = {
-    val metadata = getMetadataForName(fullname)
+    val metadata = getMetadataForName(encodeFilePath(fullname))
 
     val resource = new C3ResourceImpl(this, null, metadata)
 
@@ -133,7 +133,7 @@ class C3SystemImpl(val host: String,
   }
 
   def deleteFile(name: String) {
-    val method = createDeleteMethod(fileRequestUri + name)
+    val method = createDeleteMethod(fileRequestUri + encodeFilePath(name))
 
     executeMethod(method, status => {
       status match {
@@ -148,7 +148,7 @@ class C3SystemImpl(val host: String,
   }
 
   def addFile(fullname: String, meta: Metadata, data: DataStream): String = {
-    val relativeUrl = fileRequestUri + fullname
+    val relativeUrl = fileRequestUri + encodeFilePath(fullname)
 
     addDataInternal(relativeUrl, meta, data)
   }
@@ -179,7 +179,7 @@ class C3SystemImpl(val host: String,
   }
 
   def addDirectory(fullname: String) {
-    val method = createPostMethod(fileRequestUri + fullname)
+    val method = createPostMethod(fileRequestUri + encodeFilePath(fullname))
 
     method.addRequestHeader(new Header("x-c3-nodetype", "directory"))
 
@@ -546,5 +546,9 @@ class C3SystemImpl(val host: String,
        <info version="1.0" status="OK"/>
     """ + data +
     "</p:response>"
+  }
+
+  private def encodeFilePath(path: String): String = {
+    path.split("/").map(URLEncoder.encode(_, "UTF-8")).mkString("/")
   }
 }
