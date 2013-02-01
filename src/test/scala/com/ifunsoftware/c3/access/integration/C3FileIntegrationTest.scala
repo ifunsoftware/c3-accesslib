@@ -11,7 +11,7 @@ import io.Source
  * @author Mikhail Malygin
  */
 
-//@Ignore
+@Ignore
 class C3FileIntegrationTest {
 
   @Test
