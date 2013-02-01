@@ -3,7 +3,7 @@
     <name>C3 System Access Library</name>
     <groupId>com.ifunsoftware.c3</groupId>
     <artifactId>accesslib</artifactId>
-    <version>1.0.8-SNAPSHOT</version>
+    <version>1.0.8</version>
     <inceptionYear>2011</inceptionYear>
 
     <scm>
