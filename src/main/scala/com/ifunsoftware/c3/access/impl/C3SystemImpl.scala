@@ -291,7 +291,7 @@ class C3SystemImpl(val host: String,
 
   def moveFile(path: String, newPath: String) {
 
-    val method = createPutMethod(fileRequestUri + path)
+    val method = createPutMethod(fileRequestUri + encodeFilePath(path))
 
     method.addRequestHeader(new Header("x-c3-op", "move"))
     method.setRequestEntity(new StringRequestEntity(newPath, "text/plain", "UTF-8"))
