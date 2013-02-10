@@ -70,7 +70,7 @@ class InternalFSNodeWrapper(system: LocalC3System, resourceContainer: ResourceCo
 
   lazy val internalFSNode = Node.fromResource(resourceContainer.resource)
 
-  lazy val children = internalFSNode.asInstanceOf[Directory].getChildren
+  lazy val children = internalFSNode.asInstanceOf[Directory].children
     .map(nodeRef => new LocalC3FileSystemNode(system, nodeRef, fullPath + "/" + nodeRef.name)).toList
 
 
