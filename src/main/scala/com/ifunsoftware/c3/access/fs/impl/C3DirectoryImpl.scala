@@ -45,8 +45,8 @@ with C3Directory {
     }
   }
 
-  override def createDirectory(dirName: String) {
-    system.addDirectory(createFullPath(fullname, dirName))
+  override def createDirectory(dirName: String, meta: Map[String, String]) {
+    system.addDirectory(createFullPath(fullname, dirName), meta)
     directoryLoaded = false
   }
 

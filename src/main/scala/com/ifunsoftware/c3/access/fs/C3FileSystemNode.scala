@@ -29,7 +29,7 @@ trait C3Directory extends C3FileSystemNode {
 
   def children(embedChildrenData: Boolean = false, embedChildMetaData: Set[String] = Set()): List[C3FileSystemNode]
 
-  def createDirectory(name: String)
+  def createDirectory(dirName: String, meta: Map[String, String])
 
   def createFile(name: String, meta: Map[String, String], data: DataStream)
 

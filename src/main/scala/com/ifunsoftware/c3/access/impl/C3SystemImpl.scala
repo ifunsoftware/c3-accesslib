@@ -178,10 +178,12 @@ class C3SystemImpl(val host: String,
     })
   }
 
-  def addDirectory(fullname: String) {
+  def addDirectory(fullname: String, meta: Metadata) {
     val method = createPostMethod(fileRequestUri + encodeFilePath(fullname))
 
     method.addRequestHeader(new Header("x-c3-nodetype", "directory"))
+
+    meta foreach { case (k,v) => method.addRequestHeader(new Header("x-c3-metadata", k + ":" + v)) }
 
     executeMethod(method, status => {
       status match {

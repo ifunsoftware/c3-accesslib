@@ -118,10 +118,11 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     accessManager.update(resource)
   }
 
-  def createDirectory(fullName: String) {
+  def createDirectory(fullName: String, meta: Metadata) {
 
     retrieveAccessTokens(CREATE)
 
+    // TODO pass additional meta parameter when C3 supports it on an FS manager layer
     fsManager.createDirectory(domainId, fullName)
   }
 
