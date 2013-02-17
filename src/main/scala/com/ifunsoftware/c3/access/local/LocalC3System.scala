@@ -122,8 +122,7 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
 
     retrieveAccessTokens(CREATE)
 
-    // TODO pass additional meta parameter when C3 supports it on an FS manager layer
-    fsManager.createDirectory(domainId, fullName)
+    fsManager.createDirectory(domainId, fullName, meta)
   }
 
   def createFile(fullName: String, meta: Metadata, data: DataStream) {

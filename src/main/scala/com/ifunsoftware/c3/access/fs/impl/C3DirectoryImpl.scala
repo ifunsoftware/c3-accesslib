@@ -87,6 +87,7 @@ with C3Directory {
 
       val childFullName = (fullname match {
         case "/" => ""
+        case s if(s.endsWith("/")) => s.init
         case s => s
       }) + "/" + childName
 
