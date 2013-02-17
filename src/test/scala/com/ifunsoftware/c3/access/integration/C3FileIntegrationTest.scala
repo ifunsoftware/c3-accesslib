@@ -31,7 +31,7 @@ class C3FileIntegrationTest {
 
     val directoryName = "inttest " + System.currentTimeMillis()
 
-    dir.createDirectory(directoryName)
+    dir.createDirectory(directoryName, Map())
 
     val testDir = dir.children().filter(_.name == directoryName).head.asInstanceOf[C3Directory]
 
@@ -39,7 +39,7 @@ class C3FileIntegrationTest {
       println(child.name)
     }
 
-    testDir.createDirectory("MyDirectory")
+    testDir.createDirectory("MyDirectory", Map())
     testDir.createFile("HelloWorld124.txt", Map("md0" -> "value0"), DataStream("Hello, World!"))
 
     assertEquals(List("MyDirectory", "HelloWorld124.txt"), testDir.children(embedChildrenData = true, embedChildMetaData = Set("md0")).map(_.name).toList)
