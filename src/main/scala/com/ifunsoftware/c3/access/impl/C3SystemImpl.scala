@@ -20,6 +20,7 @@ import io.Source
 import scala.Some
 import com.ifunsoftware.c3.access.SearchResultEntry
 import scala.xml.pull._
+import org.apache.commons.codec.binary.Base64
 
 /**
  * Copyright iFunSoftware 2011
@@ -183,7 +184,9 @@ class C3SystemImpl(val host: String,
 
     method.addRequestHeader(new Header("x-c3-nodetype", "directory"))
 
-    meta foreach { case (k,v) => method.addRequestHeader(new Header("x-c3-metadata", k + ":" + v)) }
+    meta foreach { case (k,v) => method.addRequestHeader(
+      new Header("x-c3-metadata", k + ":" + new String(Base64.encodeBase64(v.getBytes("UTF-8")), "UTF-8")))
+    }
 
     executeMethod(method, status => {
       status match {
