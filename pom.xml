@@ -110,6 +110,7 @@
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
+                <version>2.15.2</version>
                 <executions>
                     <execution>
                         <goals>
@@ -153,14 +154,6 @@
             <url>http://repository.springsource.com/maven/bundles/external</url>
         </repository>
     </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>scala-tools.org</id>
-            <name>Scala-Tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
-        </pluginRepository>
-    </pluginRepositories>
 
     <distributionManagement>
         <repository>
