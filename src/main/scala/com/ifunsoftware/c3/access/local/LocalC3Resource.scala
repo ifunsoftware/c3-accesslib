@@ -16,9 +16,9 @@ class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer
 
   def tracksVersions = resource.isVersioned
 
-  def metadata = resource.metadata.toMap
+  def metadata = resource.metadata.asMap.toMap
 
-  def systemMetadata = resource.systemMetadata.toMap
+  def systemMetadata = resource.systemMetadata.asMap.toMap
 
   def versions = resource.versions.map(new LocalC3Version(_)).toList
 
