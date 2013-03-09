@@ -5,6 +5,10 @@ package com.ifunsoftware.c3.access
  * @author Mikhail Malygin
  */
 
-case class SearchResultEntry(address: String, score: Float, fragments: List[SearchResultFragment])
+case class SearchResultEntry(address: String,
+                             path: String,
+                             score: Float,
+                             fragments: List[SearchResultFragment])
 
-case class SearchResultFragment(name: String, strings: List[String])
+case class SearchResultFragment(name: String,
+                                strings: List[String])

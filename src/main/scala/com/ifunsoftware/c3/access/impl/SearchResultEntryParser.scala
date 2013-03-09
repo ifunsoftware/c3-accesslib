@@ -18,10 +18,11 @@ object SearchResultEntryParser {
   private def parseEntry(entry: NodeSeq): SearchResultEntry = {
     val address = (entry \ "@address").text
     val score = (entry \ "@score").text.toFloat
+    val path = (entry \ "@path").text
 
     val fragments = (entry \\ "fragment").map(parseFragment(_)).toList
 
-    SearchResultEntry(address, score, fragments)
+    SearchResultEntry(address, path, score, fragments)
   }
 
   private def parseFragment(fragment: NodeSeq): SearchResultFragment = {
