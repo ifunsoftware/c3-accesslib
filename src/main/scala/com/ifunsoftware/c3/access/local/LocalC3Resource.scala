@@ -22,8 +22,8 @@ class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer
 
   def versions = resource.versions.map(new LocalC3Version(_)).toList
 
-  def update(meta: Map[String, String], data: DataStream) {
 
+  def update(meta: Map[String, String], removedMeta: List[String], data: DataStream) {
     system.retrieveAccessTokens(UPDATE).checkAccess(resource)
 
     if (data != null) {
@@ -32,7 +32,17 @@ class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer
 
     resource.metadata ++= meta
 
+    removedMeta.foreach(resource.metadata.remove(_))
+
     system.update(resource)
+  }
+
+  def remove(metaKeys: List[String]) {
+    update(Map(), metaKeys, null)
+  }
+
+  def update(meta: Map[String, String], data: DataStream) {
+    update(meta, Nil, data)
   }
 
   def update(meta: Map[String, String]) {

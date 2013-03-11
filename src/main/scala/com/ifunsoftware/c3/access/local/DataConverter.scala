@@ -9,7 +9,7 @@ trait DataConverter {
   implicit def streamToInternalStream(datastream: DataStream): InternalDataStream = {
     datastream match {
       case ByteArrayDataStream(bytes) => InternalDataStream.create(bytes)
-      case FileDataStream(file) => InternalDataStream.create(file)
+      case FileDataStream(file, contentType) => InternalDataStream.create(file)
       case _ => throw new IllegalArgumentException("Unsupported stream type")
     }
   }

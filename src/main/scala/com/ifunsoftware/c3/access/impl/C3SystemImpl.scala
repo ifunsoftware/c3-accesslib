@@ -214,7 +214,18 @@ class C3SystemImpl(val host: String,
 
     val method = createPutMethod(resourceRequestUri + address)
 
-    method.setRequestEntity(new MultipartRequestEntity(createPartsArray(meta, data), method.getParams))
+    for((key, value) <- meta){
+      method.addRequestHeader("x-c3-metadata", key + ":" +
+        new String(Base64.encodeBase64(value.getBytes("UTF-8")), "UTF-8"))
+    }
+
+    for(key <- removeMeta){
+      method.addRequestHeader("x-c3-metadata-remove", key)
+    }
+
+    if(data != null){
+      method.setRequestEntity(data.createRequestEntity)
+    }
 
     executeMethod(method, status => {
       status match {

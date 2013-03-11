@@ -3,6 +3,7 @@ package com.ifunsoftware.c3.access.impl
 import java.io.{ByteArrayInputStream, InputStream}
 import com.ifunsoftware.c3.access.DataStream
 import org.apache.commons.httpclient.methods.multipart.{FilePart, PartSource}
+import org.apache.commons.httpclient.methods.ByteArrayRequestEntity
 
 /**
  * Copyright iFunSoftware 2011
@@ -12,6 +13,8 @@ import org.apache.commons.httpclient.methods.multipart.{FilePart, PartSource}
 case class ByteArrayDataStream(bytes: Array[Byte]) extends DataStream {
 
   override def createFilePart: FilePart = new FilePart("data", new ByteArrayPartSource(bytes))
+
+  override def createRequestEntity = new ByteArrayRequestEntity(bytes)
 }
 
 class ByteArrayPartSource(val bytes: Array[Byte]) extends PartSource {
