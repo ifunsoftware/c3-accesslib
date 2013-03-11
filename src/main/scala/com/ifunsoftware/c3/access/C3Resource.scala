@@ -21,9 +21,13 @@ trait C3Resource {
 
   def versions: List[C3Version]
 
+  def update(meta: Map[String, String], removedMeta:List[String], data: DataStream)
+
   def update(meta: Map[String, String], data: DataStream)
 
   def update(meta: Map[String, String])
 
   def update(data: DataStream)
+
+  def remove(metaKeys: List[String])
 }

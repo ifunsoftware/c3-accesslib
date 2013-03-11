@@ -58,10 +58,13 @@ class C3ResourceImpl(val system: C3SystemImpl, var _address: String, val xml: No
     _versions
   }
 
+  override def update(meta: Map[String, String], removedMeta:List[String], data: DataStream) {
+    system.updateResource(address, meta, removedMeta, data)
+    loaded = false
+  }
 
   override def update(meta: Map[String, String], data: DataStream) {
-    system.updateResource(address, meta, data)
-    loaded = false
+    update(meta, Nil, data)
   }
 
   override def update(meta: Map[String, String]) {
@@ -72,6 +75,9 @@ class C3ResourceImpl(val system: C3SystemImpl, var _address: String, val xml: No
     update(Map(), data)
   }
 
+  override def remove(metaKeys: List[String]) {
+    update(Map(), metaKeys, null)
+  }
 
   override def toString: String = {
 

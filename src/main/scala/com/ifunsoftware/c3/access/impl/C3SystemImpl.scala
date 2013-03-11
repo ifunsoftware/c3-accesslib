@@ -210,7 +210,7 @@ class C3SystemImpl(val host: String,
 
   }
 
-  def updateResource(address: String, meta: Metadata, data: DataStream): Int = {
+  def updateResource(address: String, meta: Metadata, removeMeta: List[String], data: DataStream): Int = {
 
     val method = createPutMethod(resourceRequestUri + address)
 
