@@ -1,6 +1,6 @@
 package com.ifunsoftware.c3.access.local
 
-import com.ifunsoftware.c3.access.{DataStream, C3Resource}
+import com.ifunsoftware.c3.access.{MetadataKeep, MetadataChange, DataStream, C3Resource}
 import org.aphreet.c3.platform.resource.{Resource, ResourceVersion}
 import org.aphreet.c3.platform.accesscontrol.UPDATE
 
@@ -22,35 +22,28 @@ class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer
 
   def versions = resource.versions.map(new LocalC3Version(_)).toList
 
-
-  def update(meta: Map[String, String], removedMeta: List[String], data: DataStream) {
+  protected def updateInternal(meta: MetadataChange, data: Option[DataStream]) {
     system.retrieveAccessTokens(UPDATE).checkAccess(resource)
 
-    if (data != null) {
-      resource.addVersion(ResourceVersion(data))
-    }
+    data.foreach(stream => resource.addVersion(ResourceVersion(stream)))
 
-    resource.metadata ++= meta
+    resource.metadata ++= meta.updated
 
-    removedMeta.foreach(resource.metadata.remove(_))
+    meta.removed.foreach(resource.metadata.remove(_))
 
     system.update(resource)
   }
 
-  def remove(metaKeys: List[String]) {
-    update(Map(), metaKeys, null)
+  def update(meta: MetadataChange, data: DataStream) {
+    updateInternal(meta, Some(data))
   }
 
-  def update(meta: Map[String, String], data: DataStream) {
-    update(meta, Nil, data)
-  }
-
-  def update(meta: Map[String, String]) {
-    update(meta, null)
+  def update(meta: MetadataChange) {
+    updateInternal(meta, None)
   }
 
   def update(data: DataStream) {
-    update(Map(), data)
+    updateInternal(MetadataKeep, Some(data))
   }
 
   implicit def convertContainerToResource(container: ResourceContainer): Resource = container.resource

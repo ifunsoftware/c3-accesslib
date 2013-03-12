@@ -9,74 +9,35 @@ class LocalC3FileSystemNode(override val system: LocalC3System,
                             val resourceContainer: ResourceContainer,
                             val name: String,
                             var fullPath: String,
-                            val isDirectory: Boolean
-                             )
-  extends LocalC3Resource(system, resourceContainer) with C3FileSystemNode with C3File with C3Directory {
-
-  def this(system: LocalC3System, node: Node, fullPath: String) = this(system,
-    new LoadedResourceContainer(node.resource),
-    node.name,
-    fullPath,
-    node.isDirectory)
-
-  def this(system: LocalC3System, nodeRef: NodeRef, fullPath: String) = this(system,
-    new LazyResourceContainer(system, nodeRef.address),
-    nodeRef.name,
-    fullPath,
-    !nodeRef.leaf)
-
-  var internalFSNode = new InternalFSNodeWrapper(system, resource, fullPath)
-
-  override def asFile = if (!isDirectory)
-    this.asInstanceOf[C3File]
-  else
-    super.asFile
-
-  override def asDirectory = if (isDirectory)
-    this.asInstanceOf[C3Directory]
-  else
-    super.asDirectory
+                            val isDirectory: Boolean)
+  extends LocalC3Resource(system, resourceContainer) with C3FileSystemNode {
 
   def fullname = fullPath
-
-  def children(embedChildrenData: Boolean, embedChildMetaData: Set[String]) =
-    internalFSNode.children
-
-  def getChild(name: String, embedChildData: Boolean, embedChildMetaData: Set[String]) =
-    internalFSNode.getChild(name)
-
-  def createDirectory(dirName: String, meta: Map[String, String]) {
-    system.createDirectory(fullname + "/" + dirName, meta)
-    markDirty()
-  }
-
-  def createFile(fileName: String, meta: Map[String, String], data: DataStream) {
-    system.createFile(fullname + "/" + fileName, meta, data)
-    markDirty()
-  }
-
-  def markDirty() {
-    internalFSNode = new InternalFSNodeWrapper(system, new LazyResourceContainer(system, resource.address), fullname)
-  }
 
   def move(path: String) {
     system.move(fullPath, path)
     fullPath = path
-    markDirty()
   }
 }
 
-class InternalFSNodeWrapper(system: LocalC3System, resourceContainer: ResourceContainer, fullPath: String) {
 
-  lazy val internalFSNode = Node.fromResource(resourceContainer.resource)
+object LocalC3FileSystemNode{
 
-  lazy val children = internalFSNode.asInstanceOf[Directory].children
-    .map(nodeRef => new LocalC3FileSystemNode(system, nodeRef, fullPath + "/" + nodeRef.name)).toList
-
-
-  def getChild(name: String) = internalFSNode.asInstanceOf[Directory].getChild(name) match {
-    case Some(ref) => Some(new LocalC3FileSystemNode(system, ref, fullPath + "/" + ref.name))
-    case None => None
+  def apply(system: LocalC3System, node: Node, fullPath: String): LocalC3FileSystemNode = {
+    if (node.isDirectory){
+      new LocalC3Directory(system, new LoadedResourceContainer(node.resource), node.name, fullPath)
+    }else{
+      new LocalC3File(system, new LoadedResourceContainer(node.resource), node.name, fullPath)
+    }
   }
+
+  def apply(system: LocalC3System, nodeRef: NodeRef, fullPath: String): LocalC3FileSystemNode = {
+    if (!nodeRef.leaf){
+      new LocalC3Directory(system, new LazyResourceContainer(system, nodeRef.address), nodeRef.name, fullPath)
+    }else{
+      new LocalC3File(system, new LazyResourceContainer(system, nodeRef.address), nodeRef.name, fullPath)
+    }
+  }
+
 }
 

@@ -210,7 +210,7 @@ class C3SystemImpl(val host: String,
 
   }
 
-  def updateResource(address: String, meta: Metadata, removeMeta: List[String], data: DataStream): Int = {
+  def updateResource(address: String, meta: Metadata, removeMeta: List[String], data: Option[DataStream]): Int = {
 
     val method = createPutMethod(resourceRequestUri + address)
 
@@ -223,9 +223,7 @@ class C3SystemImpl(val host: String,
       method.addRequestHeader("x-c3-metadata-remove", key)
     }
 
-    if(data != null){
-      method.setRequestEntity(data.createRequestEntity)
-    }
+    data.foreach{ data => method.setRequestEntity(data.createRequestEntity)}
 
     executeMethod(method, status => {
       status match {

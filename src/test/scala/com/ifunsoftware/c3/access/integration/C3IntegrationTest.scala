@@ -3,7 +3,7 @@ package com.ifunsoftware.c3.access.integration
 import org.junit.Assert._
 import java.io.BufferedReader
 import java.nio.channels.{ReadableByteChannel, Channels}
-import com.ifunsoftware.c3.access.{C3AccessException, DataStream, C3SystemFactory}
+import com.ifunsoftware.c3.access.{MetadataUpdate, C3AccessException, DataStream, C3SystemFactory}
 import org.junit.{Ignore, Test}
 
 /**
@@ -77,7 +77,7 @@ class C3IntegrationTest {
 
     val resource = system.getResource(address)
 
-    resource.update(newMeta, DataStream(expectedContent))
+    resource.update(MetadataUpdate(newMeta), DataStream(expectedContent))
 
     checkMetadataContains(newMeta, resource.metadata)
 

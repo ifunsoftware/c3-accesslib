@@ -1,7 +1,7 @@
 package com.ifunsoftware.c3.access.fs.impl
 
 import com.ifunsoftware.c3.access.impl.{C3VersionImpl, C3SystemImpl}
-import com.ifunsoftware.c3.access.{C3InputStream, C3ByteChannel, DataStream}
+import com.ifunsoftware.c3.access.{MetadataChange, C3InputStream, C3ByteChannel, DataStream}
 import collection.mutable.ArrayBuffer
 import xml.{XML, NodeSeq}
 import java.nio.channels.Channels
@@ -60,11 +60,7 @@ with C3Directory {
     directoryLoaded = false
   }
 
-  override def update(meta: Map[String, String], data: DataStream) {
-    throw new UnsupportedOperationException
-  }
-
-  override def update(meta: Map[String, String]) {
+  override def update(meta: MetadataChange, data: DataStream) {
     throw new UnsupportedOperationException
   }
 

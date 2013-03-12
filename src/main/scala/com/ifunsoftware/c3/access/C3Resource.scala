@@ -21,13 +21,23 @@ trait C3Resource {
 
   def versions: List[C3Version]
 
-  def update(meta: Map[String, String], removedMeta:List[String], data: DataStream)
+  def update(meta: MetadataChange, data: DataStream)
 
-  def update(meta: Map[String, String], data: DataStream)
-
-  def update(meta: Map[String, String])
+  def update(meta: MetadataChange)
 
   def update(data: DataStream)
-
-  def remove(metaKeys: List[String])
 }
+
+class MetadataChange(val updated: Map[String, String], val removed: List[String]){
+
+  def this(updated: Map[String, String]) = this(updated, Nil)
+
+  def this(removed: List[String]) = this(Map(), removed)
+
+}
+
+object MetadataKeep extends MetadataChange(Map(), Nil)
+
+case class MetadataRemove(override val removed: List[String]) extends MetadataChange(Map(), removed)
+
+case class MetadataUpdate(override val updated: Map[String, String]) extends MetadataChange(updated, Nil)

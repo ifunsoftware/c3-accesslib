@@ -86,7 +86,7 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
 
     retrieveAccessTokens(READ).checkAccess(internalNode.resource)
 
-    new LocalC3FileSystemNode(this, internalNode, name)
+    LocalC3FileSystemNode(this, internalNode, name)
   }
 
   def deleteResource(ra: String) {

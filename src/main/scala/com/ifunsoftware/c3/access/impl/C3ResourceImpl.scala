@@ -4,7 +4,7 @@ import java.util.Date
 import xml.NodeSeq
 import org.joda.time.format.ISODateTimeFormat
 import collection.mutable.ArrayBuffer
-import com.ifunsoftware.c3.access.{DataStream, C3AccessException, C3Version, C3Resource}
+import com.ifunsoftware.c3.access._
 import org.slf4j.LoggerFactory
 
 /**
@@ -58,25 +58,21 @@ class C3ResourceImpl(val system: C3SystemImpl, var _address: String, val xml: No
     _versions
   }
 
-  override def update(meta: Map[String, String], removedMeta:List[String], data: DataStream) {
-    system.updateResource(address, meta, removedMeta, data)
+  protected def updateInternal(meta: MetadataChange, data: Option[DataStream]) {
+    system.updateResource(address, meta.updated, meta.removed, data)
     loaded = false
   }
 
-  override def update(meta: Map[String, String], data: DataStream) {
-    update(meta, Nil, data)
+  override def update(meta: MetadataChange, data: DataStream) {
+    updateInternal(meta, Some(data))
   }
 
-  override def update(meta: Map[String, String]) {
-    update(meta, null)
+  override def update(meta: MetadataChange) {
+    updateInternal(meta, None)
   }
 
   override def update(data: DataStream) {
-    update(Map(), data)
-  }
-
-  override def remove(metaKeys: List[String]) {
-    update(Map(), metaKeys, null)
+    updateInternal(MetadataKeep, Some(data))
   }
 
   override def toString: String = {
