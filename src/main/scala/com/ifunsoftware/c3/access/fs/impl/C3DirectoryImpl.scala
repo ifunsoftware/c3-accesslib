@@ -1,7 +1,7 @@
 package com.ifunsoftware.c3.access.fs.impl
 
 import com.ifunsoftware.c3.access.impl.{C3VersionImpl, C3SystemImpl}
-import com.ifunsoftware.c3.access.{MetadataChange, C3InputStream, C3ByteChannel, DataStream}
+import com.ifunsoftware.c3.access._
 import collection.mutable.ArrayBuffer
 import xml.{XML, NodeSeq}
 import java.nio.channels.Channels
@@ -10,6 +10,7 @@ import com.ifunsoftware.c3.access.fs.{C3FileSystemNode, C3Directory}
 import java.nio.ByteBuffer
 import java.io.ByteArrayInputStream
 import org.joda.time.format.ISODateTimeFormat
+import scala.collection.Map
 
 /**
  * Copyright iFunSoftware 2011
@@ -45,7 +46,7 @@ with C3Directory {
     }
   }
 
-  override def createDirectory(dirName: String, meta: Map[String, String]) {
+  override def createDirectory(dirName: String, meta: Map[String, MetadataValue]) {
     system.addDirectory(createFullPath(fullname, dirName), meta)
     directoryLoaded = false
   }
@@ -54,7 +55,7 @@ with C3Directory {
 
   override def asDirectory: C3Directory = this
 
-  override def createFile(name: String, meta: Map[String, String], data: DataStream) {
+  override def createFile(name: String, meta: Map[String, MetadataValue], data: DataStream) {
     system.addFile(createFullPath(fullname, name), meta, data)
 
     directoryLoaded = false

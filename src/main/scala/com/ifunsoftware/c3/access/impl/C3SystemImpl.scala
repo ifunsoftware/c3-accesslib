@@ -185,7 +185,7 @@ class C3SystemImpl(val host: String,
     method.addRequestHeader(new Header("x-c3-nodetype", "directory"))
 
     meta foreach { case (k,v) => method.addRequestHeader(
-      new Header("x-c3-metadata", k + ":" + new String(Base64.encodeBase64(v.getBytes("UTF-8")), "UTF-8")))
+      new Header("x-c3-metadata", k + ":" + new String(Base64.encodeBase64(v.get.getBytes("UTF-8")), "UTF-8")))
     }
 
     executeMethod(method, status => {
@@ -216,7 +216,7 @@ class C3SystemImpl(val host: String,
 
     for((key, value) <- meta){
       method.addRequestHeader("x-c3-metadata", key + ":" +
-        new String(Base64.encodeBase64(value.getBytes("UTF-8")), "UTF-8"))
+        new String(Base64.encodeBase64(value.get.getBytes("UTF-8")), "UTF-8"))
     }
 
     for(key <- removeMeta){
@@ -322,7 +322,7 @@ class C3SystemImpl(val host: String,
   protected def createPartsArray(meta: Metadata, data: DataStream): Array[Part] = {
 
     var parts: List[Part] = meta.map(e => {
-      val part = new StringPart(e._1, e._2, "UTF-16")
+      val part = new StringPart(e._1, e._2.get, "UTF-16")
       part.setCharSet("UTF-8")
       part
     }).toList
@@ -398,7 +398,7 @@ class C3SystemImpl(val host: String,
 
     val method = new GetMethod(host + "/rest/query")
 
-    method.setQueryString(meta.map(e => new NameValuePair(e._1, e._2)).toArray)
+    method.setQueryString(meta.map(e => new NameValuePair(e._1, e._2.get)).toArray)
 
     addAuthHeaders(method, "/rest/query")
 

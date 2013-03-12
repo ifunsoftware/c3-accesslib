@@ -3,8 +3,11 @@ package com.ifunsoftware.c3.access.integration
 import org.junit.Assert._
 import java.io.BufferedReader
 import java.nio.channels.{ReadableByteChannel, Channels}
-import com.ifunsoftware.c3.access.{MetadataUpdate, C3AccessException, DataStream, C3SystemFactory}
+import com.ifunsoftware.c3.access._
 import org.junit.{Ignore, Test}
+import com.ifunsoftware.c3.access.C3System._
+import com.ifunsoftware.c3.access.MetadataUpdate
+import scala.collection.Map
 
 /**
  * Copyright iFunSoftware 2011

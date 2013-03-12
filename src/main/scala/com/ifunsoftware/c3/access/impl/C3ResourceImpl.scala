@@ -6,6 +6,7 @@ import org.joda.time.format.ISODateTimeFormat
 import collection.mutable.ArrayBuffer
 import com.ifunsoftware.c3.access._
 import org.slf4j.LoggerFactory
+import scala.collection.Map
 
 /**
  * Copyright iFunSoftware 2011

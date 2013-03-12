@@ -1,6 +1,7 @@
 package com.ifunsoftware.c3.access.fs
 
-import com.ifunsoftware.c3.access.{C3Resource, DataStream}
+import com.ifunsoftware.c3.access.{MetadataValue, C3Resource, DataStream}
+import scala.collection.Map
 
 /**
  * Copyright iFunSoftware 2011
@@ -29,9 +30,9 @@ trait C3Directory extends C3FileSystemNode {
 
   def children(embedChildrenData: Boolean = false, embedChildMetaData: Set[String] = Set()): List[C3FileSystemNode]
 
-  def createDirectory(dirName: String, meta: Map[String, String])
+  def createDirectory(dirName: String, meta: Map[String, MetadataValue])
 
-  def createFile(name: String, meta: Map[String, String], data: DataStream)
+  def createFile(name: String, meta: Map[String, MetadataValue], data: DataStream)
 
   def markDirty()
 

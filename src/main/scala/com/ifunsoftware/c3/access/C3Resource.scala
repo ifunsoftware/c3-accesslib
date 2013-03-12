@@ -1,6 +1,9 @@
 package com.ifunsoftware.c3.access
 
+import impl.MetadataHelper
 import java.util.Date
+import scala.collection.Map
+
 
 /**
  * Copyright iFunSoftware 2011
@@ -28,16 +31,37 @@ trait C3Resource {
   def update(data: DataStream)
 }
 
-class MetadataChange(val updated: Map[String, String], val removed: List[String]){
+trait MetadataValue{
 
-  def this(updated: Map[String, String]) = this(updated, Nil)
+  def get: String
 
-  def this(removed: List[String]) = this(Map(), removed)
+  def getCollection: TraversableOnce[String]
 
 }
+
+case class StringMetadataValue(value: String) extends MetadataValue{
+  def get = value
+
+  def getCollection = MetadataHelper.parseSequence(value)
+}
+
+case class LongMetadataValue(value: Long) extends MetadataValue{
+  def get = value.toString
+
+  def getCollection = Some(value.toString)
+}
+
+case class CollectionMetadataValue(value: TraversableOnce[String]) extends MetadataValue{
+
+  def get = "[" + value.map(_.replaceAll(",", "\\,")).mkString(",") + "]"
+
+  def getCollection = value
+}
+
+class MetadataChange(val updated: Map[String, MetadataValue], val removed: List[String])
 
 object MetadataKeep extends MetadataChange(Map(), Nil)
 
 case class MetadataRemove(override val removed: List[String]) extends MetadataChange(Map(), removed)
 
-case class MetadataUpdate(override val updated: Map[String, String]) extends MetadataChange(updated, Nil)
+case class MetadataUpdate(override val updated: Map[String, MetadataValue]) extends MetadataChange(updated, Nil)

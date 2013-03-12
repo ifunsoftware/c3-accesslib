@@ -16,9 +16,9 @@ class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer
 
   def tracksVersions = resource.isVersioned
 
-  def metadata = resource.metadata.asMap.toMap
+  def metadata = resource.metadata.asMap
 
-  def systemMetadata = resource.systemMetadata.asMap.toMap
+  def systemMetadata = resource.systemMetadata.asMap
 
   def versions = resource.versions.map(new LocalC3Version(_)).toList
 
@@ -27,7 +27,7 @@ class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer
 
     data.foreach(stream => resource.addVersion(ResourceVersion(stream)))
 
-    resource.metadata ++= meta.updated
+    resource.metadata ++= meta.updated.map(e => (e._1, e._2.get))
 
     meta.removed.foreach(resource.metadata.remove(_))
 

@@ -2,6 +2,7 @@ package com.ifunsoftware.c3.access.local
 
 import com.ifunsoftware.c3.access._
 import com.ifunsoftware.c3.access.local.fs.LocalC3FileSystemNode
+import com.ifunsoftware.c3.access.C3System._
 import org.aphreet.c3.platform.access.AccessManager
 import org.aphreet.c3.platform.resource.{ResourceVersion, Resource}
 import org.aphreet.c3.platform.accesscontrol._
@@ -72,7 +73,9 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     val accessTokens = retrieveAccessTokens(CREATE)
 
     val resource = new Resource
-    resource.metadata ++= meta
+    for((key, value) <- meta){
+      resource.metadata(key) = value.get
+    }
 
     resource.addVersion(ResourceVersion(data))
 
@@ -122,7 +125,7 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
 
     retrieveAccessTokens(CREATE)
 
-    fsManager.createDirectory(domainId, fullName, meta)
+    fsManager.createDirectory(domainId, fullName, metadataMapToStringMap(meta).toMap)
   }
 
   def createFile(fullName: String, meta: Metadata, data: DataStream) {
@@ -130,7 +133,10 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     val accessTokens = retrieveAccessTokens(CREATE)
 
     val resource = new Resource
-    resource.metadata ++= meta
+
+    for((key, value) <- meta){
+      resource.metadata(key) = value.get
+    }
 
     resource.addVersion(ResourceVersion(data))
 
@@ -151,7 +157,7 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
   }
 
   def query(meta: Metadata, function: C3Resource => Unit) {
-    queryManager.executeQuery(fields = meta, systemFields = Map(Domain.MD_FIELD -> domainId), consumer = new QueryConsumer {
+    queryManager.executeQuery(fields = metadataMapToStringMap(meta).toMap, systemFields = Map(Domain.MD_FIELD -> domainId), consumer = new QueryConsumer {
       def close() {}
 
       def consume(resource: Resource): Boolean = {

@@ -2,6 +2,7 @@ package com.ifunsoftware.c3.access.integration
 
 import org.junit.Assert._
 import com.ifunsoftware.c3.access.fs.C3Directory
+import com.ifunsoftware.c3.access.C3System._
 import com.ifunsoftware.c3.access.{C3AccessException, DataStream, C3SystemFactory}
 import org.junit.{Ignore, Test}
 import io.Source
