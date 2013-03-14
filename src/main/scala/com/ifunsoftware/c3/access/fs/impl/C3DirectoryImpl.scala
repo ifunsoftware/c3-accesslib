@@ -1,6 +1,7 @@
 package com.ifunsoftware.c3.access.fs.impl
 
 import com.ifunsoftware.c3.access.impl.{C3VersionImpl, C3SystemImpl}
+import com.ifunsoftware.c3.access.C3System.Metadata
 import com.ifunsoftware.c3.access._
 import collection.mutable.ArrayBuffer
 import xml.{XML, NodeSeq}
@@ -46,7 +47,7 @@ with C3Directory {
     }
   }
 
-  override def createDirectory(dirName: String, meta: Map[String, MetadataValue]) {
+  override def createDirectory(dirName: String, meta: Metadata) {
     system.addDirectory(createFullPath(fullname, dirName), meta)
     directoryLoaded = false
   }
@@ -55,7 +56,7 @@ with C3Directory {
 
   override def asDirectory: C3Directory = this
 
-  override def createFile(name: String, meta: Map[String, MetadataValue], data: DataStream) {
+  override def createFile(name: String, meta: Metadata, data: DataStream) {
     system.addFile(createFullPath(fullname, name), meta, data)
 
     directoryLoaded = false

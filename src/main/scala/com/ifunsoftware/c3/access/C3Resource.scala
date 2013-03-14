@@ -3,6 +3,7 @@ package com.ifunsoftware.c3.access
 import impl.MetadataHelper
 import java.util.Date
 import scala.collection.Map
+import C3System._
 
 
 /**
@@ -58,10 +59,10 @@ case class CollectionMetadataValue(value: TraversableOnce[String]) extends Metad
   def getCollection = value
 }
 
-class MetadataChange(val updated: Map[String, MetadataValue], val removed: List[String])
+class MetadataChange(val updated: Metadata, val removed: List[String])
 
 object MetadataKeep extends MetadataChange(Map(), Nil)
 
 case class MetadataRemove(override val removed: List[String]) extends MetadataChange(Map(), removed)
 
-case class MetadataUpdate(override val updated: Map[String, MetadataValue]) extends MetadataChange(updated, Nil)
+case class MetadataUpdate(override val updated: Metadata) extends MetadataChange(updated, Nil)

@@ -1,10 +1,10 @@
 package com.ifunsoftware.c3.access.local.fs
 
+import com.ifunsoftware.c3.access.C3System.Metadata
 import com.ifunsoftware.c3.access.fs.C3Directory
 import com.ifunsoftware.c3.access.local.{LazyResourceContainer, ResourceContainer, LocalC3System}
-import com.ifunsoftware.c3.access.{MetadataValue, MetadataChange, DataStream}
+import com.ifunsoftware.c3.access.{MetadataChange, DataStream}
 import org.aphreet.c3.platform.filesystem.{Directory, Node}
-import scala.collection.Map
 
 
 class LocalC3Directory(override val system: LocalC3System,
@@ -23,12 +23,12 @@ with C3Directory {
   def getChild(name: String, embedChildData: Boolean, embedChildMetaData: Set[String]) =
     internalFSNode.getChild(name)
 
-  def createDirectory(dirName: String, meta: Map[String, MetadataValue]) {
+  def createDirectory(dirName: String, meta: Metadata) {
     system.createDirectory(fullname + "/" + dirName, meta)
     markDirty()
   }
 
-  def createFile(fileName: String, meta: Map[String, MetadataValue], data: DataStream) {
+  def createFile(fileName: String, meta: Metadata, data: DataStream) {
     system.createFile(fullname + "/" + fileName, meta, data)
     markDirty()
   }

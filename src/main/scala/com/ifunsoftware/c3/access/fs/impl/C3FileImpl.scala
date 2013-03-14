@@ -1,8 +1,8 @@
 package com.ifunsoftware.c3.access.fs.impl
 
+import com.ifunsoftware.c3.access.fs.C3File
 import com.ifunsoftware.c3.access.impl.C3SystemImpl
 import xml.NodeSeq
-import com.ifunsoftware.c3.access.fs.{C3Directory, C3File}
 
 /**
  * Copyright iFunSoftware 2011

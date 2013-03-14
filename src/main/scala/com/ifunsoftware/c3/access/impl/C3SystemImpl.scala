@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import com.ifunsoftware.c3.access._
 import org.apache.commons.httpclient.methods.multipart.{MultipartRequestEntity, StringPart, Part}
 import xml._
+import com.ifunsoftware.c3.access.C3System.Metadata
 import com.ifunsoftware.c3.access.fs.C3FileSystemNode
 import com.ifunsoftware.c3.access.fs.impl.{C3FileImpl, C3DirectoryImpl}
 import java.io.{BufferedInputStream, InputStreamReader}
