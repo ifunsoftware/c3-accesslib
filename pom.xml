@@ -127,7 +127,7 @@
                 <configuration>
                     <testFailureIgnore>false</testFailureIgnore>
                     <excludes>
-                        <exclude>com/ifunsoftware/s4/access/integration/**</exclude>
+                        <exclude>com/ifunsoftware/c3/access/integration/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
