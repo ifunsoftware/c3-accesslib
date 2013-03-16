@@ -196,10 +196,12 @@ with C3Directory {
   }
 
   private def createFullPath(basePath: String, name: String): String = {
-    (basePath match {
-      case "/" => ""  // this is workaround for files under root "/" directory: /rest/fs//name
-      case path => path
-    }) + "/" + name
+
+    if(basePath.endsWith("/")){
+      basePath + name
+    }else{
+      basePath + "/" + name
+    }
   }
 }
 
