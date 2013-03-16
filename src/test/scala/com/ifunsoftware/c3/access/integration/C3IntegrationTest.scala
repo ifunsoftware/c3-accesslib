@@ -1,26 +1,19 @@
 package com.ifunsoftware.c3.access.integration
 
-import org.junit.Assert._
-import java.io.BufferedReader
-import java.nio.channels.{ReadableByteChannel, Channels}
-import com.ifunsoftware.c3.access._
-import org.junit.{Ignore, Test}
 import com.ifunsoftware.c3.access.C3System._
 import com.ifunsoftware.c3.access.MetadataUpdate
+import com.ifunsoftware.c3.access._
+import java.io.BufferedReader
+import java.nio.channels.{ReadableByteChannel, Channels}
+import org.junit.Assert._
+import org.junit.Test
 import scala.collection.Map
 
 /**
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
  */
-@Ignore
 class C3IntegrationTest {
-
-  val C3_SYSTEM_ADDRESS = "http://node0.c3.ifunsoftware.com"
-
-  val C3_DOMAIN = "aphreet"
-
-  val C3_KEY = "e14ebc01610f9273fbe12e118d662f37"
 
   @Test
   def testResourceCRUD() {
@@ -41,7 +34,7 @@ class C3IntegrationTest {
     })
   }
 
-  def createSystem() = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS, C3_DOMAIN, C3_KEY)
+  def createSystem() = new C3SystemFactory().createSystem(C3_HOST, C3_DOMAIN, C3_KEY)
 
   //@Test
   def testDelete(){

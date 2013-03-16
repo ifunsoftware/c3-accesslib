@@ -1,30 +1,23 @@
 package com.ifunsoftware.c3.access.integration
 
-import org.junit.Assert._
-import com.ifunsoftware.c3.access.fs.C3Directory
 import com.ifunsoftware.c3.access.C3System._
+import com.ifunsoftware.c3.access.fs.C3Directory
 import com.ifunsoftware.c3.access.{C3AccessException, DataStream, C3SystemFactory}
-import org.junit.{Ignore, Test}
 import io.Source
+import org.junit.Assert._
+import org.junit.Test
 
 /**
  * Copyright iFunSoftware 2011
  * @author Mikhail Malygin
  */
 
-@Ignore
 class C3FileIntegrationTest {
 
   @Test
   def testFileSystemCRUD(){
 
-    val C3_SYSTEM_ADDRESS = "http://localhost:7373"
-
-    val C3_DOMAIN = "aphreet"
-
-    val C3_KEY = "e14ebc01610f9273fbe12e118d662f37"
-
-    val system = new C3SystemFactory().createSystem(C3_SYSTEM_ADDRESS)
+    val system = new C3SystemFactory().createSystem(C3_HOST, C3_DOMAIN, C3_KEY)
 
     val node = system.getFile("/")
 
@@ -40,7 +33,7 @@ class C3FileIntegrationTest {
       println(child.name)
     }
 
-    testDir.createDirectory("MyDirectory", Map())
+    testDir.createDirectory("MyDirectory", Map("dirmd" -> "dimdvalue0"))
     testDir.createFile("HelloWorld124.txt", Map("md0" -> "value0"), DataStream("Hello, World!"))
 
     assertEquals(List("MyDirectory", "HelloWorld124.txt"), testDir.children(embedChildrenData = true, embedChildMetaData = Set("md0")).map(_.name).toList)
@@ -76,7 +69,7 @@ class C3FileIntegrationTest {
     }catch {
       case e:C3AccessException => {
         assertEquals(404, e.code)
-        assertEquals("File not found", e.message)
+        assertEquals("Resource not found", e.message)
       }
       case e => fail("Expected C3AccessException")
     }
