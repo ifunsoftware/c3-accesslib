@@ -221,7 +221,7 @@ class C3SystemImpl(val host: String,
     }
 
     for(key <- removeMeta){
-      method.addRequestHeader("x-c3-metadata-remove", key)
+      method.addRequestHeader("x-c3-metadata-delete", key)
     }
 
     data.foreach{ data => method.setRequestEntity(data.createRequestEntity)}
