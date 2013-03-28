@@ -98,7 +98,7 @@ class C3IntegrationTest {
         assertEquals(404, e.code)
         assertEquals("Resource not found", e.message)
       }
-      case e => fail("Expected C3AccessException")
+      case e: Throwable => fail("Expected C3AccessException")
     }
   }
 
