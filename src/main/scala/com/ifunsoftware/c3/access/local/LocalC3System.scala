@@ -6,13 +6,14 @@ import com.ifunsoftware.c3.access.C3System.Metadata
 import org.aphreet.c3.platform.access.AccessManager
 import org.aphreet.c3.platform.resource.{ResourceVersion, Resource}
 import org.aphreet.c3.platform.accesscontrol._
-import org.aphreet.c3.platform.filesystem.FSManager
+import org.aphreet.c3.platform.filesystem.{FSNotFoundException, FSManager}
 import scala.Some
 import org.osgi.framework.BundleContext
 import org.slf4j.LoggerFactory
 import org.aphreet.c3.platform.domain.{Domain, DomainManager}
 import org.aphreet.c3.platform.search.SearchManager
 import org.aphreet.c3.platform.query.{QueryConsumer, QueryManager}
+import com.ifunsoftware.c3.access.fs.C3FileSystemNode
 
 class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3System with DataConverter {
 
@@ -52,20 +53,20 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     }
   }
 
-  def getData(ra: String): C3ByteChannel = {
+  def getData(ra: String): Option[C3ByteChannel] = {
     accessManager.getOption(ra) match {
       case Some(resource) => {
 
         retrieveAccessTokens(READ).checkAccess(resource)
 
-        new LocalC3ByteChannel(resource.versions.last.data)
+        Some(new LocalC3ByteChannel(resource.versions.last.data))
       }
-      case None => throw new C3AccessException("Resource " + ra + " is not found")
+      case None => None
     }
   }
 
-  def getResource(ra: String, metadata: List[String]): C3Resource = {
-    new LocalC3Resource(this, ra)
+  def getResource(ra: String, metadata: List[String]): Option[C3Resource] = {
+    Some(new LocalC3Resource(this, ra))
   }
 
   def addResource(meta: Metadata, data: DataStream): String = {
@@ -84,12 +85,17 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     accessManager.add(resource)
   }
 
-  def getFile(name: String) = {
-    val internalNode = fsManager.getNode(domainId, name)
+  def getFile(name: String): Option[C3FileSystemNode] = {
+    try {
+      val internalNode = fsManager.getNode(domainId, name)
 
-    retrieveAccessTokens(READ).checkAccess(internalNode.resource)
+      retrieveAccessTokens(READ).checkAccess(internalNode.resource)
 
-    LocalC3FileSystemNode(this, internalNode, name)
+      Some(LocalC3FileSystemNode(this, internalNode, name))
+    }catch {
+      case e: FSNotFoundException => None
+      case e: Throwable => throw new C3AccessException("Can't get file with name " + name + " in domain " + domain, e)
+    }
   }
 
   def deleteResource(ra: String) {

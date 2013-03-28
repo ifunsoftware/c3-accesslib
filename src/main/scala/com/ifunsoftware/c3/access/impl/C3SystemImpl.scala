@@ -110,27 +110,46 @@ class C3SystemImpl(val host: String,
     })
   }
 
-  override def getResource(ra: String, metadata: List[String] = List()): C3Resource = new C3ResourceImpl(this, ra, getMetadataForAddress(ra, metadata))
-
-  override def getFile(fullname: String): C3FileSystemNode = {
-    val metadata = getMetadataForName(encodeFilePath(fullname))
-
-    val resource = new C3ResourceImpl(this, null, metadata)
-
-    val isDir = resource.systemMetadata.getOrElse("c3.fs.nodetype", "") == "directory"
-
-    val name = resource.systemMetadata.get("c3.fs.nodename") match {
-      case Some(value) => value
-      case None => {
-        if (fullname == "/") "/"
-        else throw new C3AccessException("File " + fullname + " does not contain 'c3.fs.nodename' system metadata")
+  override def getResource(ra: String, metadata: List[String] = List()): Option[C3Resource] = {
+    try {
+      Some(new C3ResourceImpl(this, ra, getMetadataForAddress(ra, metadata)))
+    }catch{
+      case e: C3AccessException => if (e.code == HttpStatus.SC_NOT_FOUND){
+        None
+      }else{
+        throw e
       }
     }
+  }
 
-    if (isDir) {
-      new C3DirectoryImpl(this, resource.address, metadata, name, fullname)
-    } else {
-      new C3FileImpl(this, resource.address, metadata, name, fullname)
+
+  override def getFile(fullname: String): Option[C3FileSystemNode] = {
+    val metadata = getMetadataForName(encodeFilePath(fullname))
+
+    try {
+      val resource = new C3ResourceImpl(this, null, metadata)
+
+      val isDir = resource.systemMetadata.getOrElse("c3.fs.nodetype", "") == "directory"
+
+      val name = resource.systemMetadata.get("c3.fs.nodename") match {
+        case Some(value) => value
+        case None => {
+          if (fullname == "/") "/"
+          else throw new C3AccessException("File " + fullname + " does not contain 'c3.fs.nodename' system metadata")
+        }
+      }
+
+      if (isDir) {
+        Some(new C3DirectoryImpl(this, resource.address, metadata, name, fullname))
+      } else {
+        Some(new C3FileImpl(this, resource.address, metadata, name, fullname))
+      }
+    }catch{
+      case e: C3AccessException => if (e.code == HttpStatus.SC_NOT_FOUND){
+        None
+      }else{
+        throw e
+      }
     }
   }
 
@@ -251,7 +270,7 @@ class C3SystemImpl(val host: String,
   }
 
   override
-  def getData(ra: String): C3ByteChannel =
+  def getData(ra: String): Option[C3ByteChannel] =
     getData(ra, embedData = false, embedChildMetaData = Set())
 
   def getData(ra: String, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel =
