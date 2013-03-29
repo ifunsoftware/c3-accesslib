@@ -271,7 +271,18 @@ class C3SystemImpl(val host: String,
 
   override
   def getData(ra: String): Option[C3ByteChannel] =
-    getData(ra, embedData = false, embedChildMetaData = Set())
+    try{
+      Some(getData(ra, embedData = false, embedChildMetaData = Set()))
+    }catch{
+      case e: C3AccessException => if(e.code == HttpStatus.SC_NOT_FOUND){
+        None
+      }else {
+        throw e
+      }
+
+    }
+
+
 
   def getData(ra: String, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel =
     getDataInternal(ra, 0, embedData, embedChildMetaData)

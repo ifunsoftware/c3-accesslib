@@ -1,7 +1,6 @@
 package com.ifunsoftware.c3.access.integration
 
 import com.ifunsoftware.c3.access.C3System._
-import com.ifunsoftware.c3.access.MetadataUpdate
 import com.ifunsoftware.c3.access._
 import java.io.BufferedReader
 import java.nio.channels.{ReadableByteChannel, Channels}
@@ -52,13 +51,17 @@ class C3IntegrationTest {
 
     val address = system.addResource(meta, DataStream(expectedContent))
 
-    val resource = system.getResource(address)
+    system.getResource(address) match {
+      case Some(resource) => {
+        checkMetadataContains(meta, resource.metadata)
+      }
+      case None => fail("Resource expected")
+    }
 
-    checkMetadataContains(meta, resource.metadata)
-    
-    val dataChannel = system.getData(address)
-
-    checkContentMatch(expectedContent, dataChannel)
+    system.getData(address) match {
+      case Some(dataChannel) => checkContentMatch(expectedContent, dataChannel)
+      case None => fail("Data expected")
+    }
 
     address
   }
@@ -71,17 +74,20 @@ class C3IntegrationTest {
 
     val system = createSystem()
 
-    val resource = system.getResource(address)
+    system.getResource(address) match {
+      case Some(resource) => {
+        resource.update(MetadataUpdate(newMeta), DataStream(expectedContent))
 
-    resource.update(MetadataUpdate(newMeta), DataStream(expectedContent))
+        checkMetadataContains(newMeta, resource.metadata)
 
-    checkMetadataContains(newMeta, resource.metadata)
+        val version = resource.versions.tail.head
 
-    val version = resource.versions.tail.head
+        val dataChannel = version.getData
 
-    val dataChannel = version.getData
-
-    checkContentMatch(expectedContent, dataChannel)
+        checkContentMatch(expectedContent, dataChannel)
+      }
+      case None => fail("Resorce expected")
+    }
   }
 
   def checkResourceDelete(address:String) {

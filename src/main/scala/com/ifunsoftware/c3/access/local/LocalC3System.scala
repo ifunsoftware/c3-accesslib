@@ -66,7 +66,11 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
   }
 
   def getResource(ra: String, metadata: List[String]): Option[C3Resource] = {
-    Some(new LocalC3Resource(this, ra))
+
+    accessManager.getOption(ra) match {
+      case Some(resource) => Some(new LocalC3Resource(this, resource))
+      case None => None
+    }
   }
 
   def addResource(meta: Metadata, data: DataStream): String = {
