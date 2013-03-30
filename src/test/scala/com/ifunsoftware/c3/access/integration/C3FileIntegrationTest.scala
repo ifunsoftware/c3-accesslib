@@ -19,9 +19,10 @@ class C3FileIntegrationTest {
 
     val system = new C3SystemFactory().createSystem(C3_HOST, C3_DOMAIN, C3_KEY)
 
-    val node = system.getFile("/")
-
-    val dir = node.asInstanceOf[C3Directory]
+    val dir: C3Directory = system.getFile("/") match{
+      case Some(node) => node.asInstanceOf[C3Directory]
+      case None => throw new IllegalStateException("Root directory expected")
+    }
 
     val directoryName = "inttest " + System.currentTimeMillis()
 

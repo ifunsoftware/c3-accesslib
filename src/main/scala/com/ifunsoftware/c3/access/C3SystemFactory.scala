@@ -1,7 +1,7 @@
 package com.ifunsoftware.c3.access
 
 import impl.C3SystemImpl
-import local.LocalC3System
+import local.{OSGiServiceLocator, LocalC3System}
 
 /**
  * Copyright iFunSoftware 2011
@@ -23,6 +23,6 @@ class C3SystemFactory {
   }
 
   def createLocalSystem(domain: String, bundleContext: AnyRef): C3System = {
-    new LocalC3System(domain, bundleContext)
+    new LocalC3System(domain, new OSGiServiceLocator(bundleContext))
   }
 }

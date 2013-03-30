@@ -96,16 +96,7 @@ class C3IntegrationTest {
 
     system.deleteResource(address)
 
-    try{
-      system.getResource(address)
-      fail("Resource can't be loaded after delete")
-    }catch{
-      case e:C3AccessException => {
-        assertEquals(404, e.code)
-        assertEquals("Resource not found", e.message)
-      }
-      case e: Throwable => fail("Expected C3AccessException")
-    }
+    assertEquals(None, system.getResource(address))
   }
 
   def checkContentMatch(expected:String, actual:ReadableByteChannel) {

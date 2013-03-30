@@ -15,21 +15,21 @@ import org.aphreet.c3.platform.search.SearchManager
 import org.aphreet.c3.platform.query.{QueryConsumer, QueryManager}
 import com.ifunsoftware.c3.access.fs.C3FileSystemNode
 
-class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3System with DataConverter {
+class LocalC3System(val domain: String, val serviceLocator: C3ServiceLocator) extends C3System with DataConverter {
 
   thisC3system =>
 
-  val accessManager = resolveService(classOf[AccessManager])
+  val accessManager = serviceLocator.resolveService(classOf[AccessManager])
 
-  val fsManager = resolveService(classOf[FSManager])
+  val fsManager = serviceLocator.resolveService(classOf[FSManager])
 
-  val accessControlManager = resolveService(classOf[AccessControlManager])
+  val accessControlManager = serviceLocator.resolveService(classOf[AccessControlManager])
 
-  val domainManager = resolveService(classOf[DomainManager])
+  val domainManager = serviceLocator.resolveService(classOf[DomainManager])
 
-  val searchManager = resolveService(classOf[SearchManager])
+  val searchManager = serviceLocator.resolveService(classOf[SearchManager])
 
-  val queryManager = resolveService(classOf[QueryManager])
+  val queryManager = serviceLocator.resolveService(classOf[QueryManager])
 
   val domainId = {
     domainManager.domainById(domain) match {
@@ -176,17 +176,6 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
         true
       }
     })
-  }
-
-  def resolveService[T](clazz: Class[T]): T = {
-
-    LocalC3System.log.info("Resolving service {}", clazz.getCanonicalName)
-
-    val context = bundleContext.asInstanceOf[BundleContext]
-
-    val reference = context.getServiceReference(clazz.getCanonicalName)
-
-    context.getService(reference).asInstanceOf[T]
   }
 }
 

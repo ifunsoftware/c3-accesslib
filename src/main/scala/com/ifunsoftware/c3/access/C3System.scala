@@ -8,6 +8,7 @@ import scala.collection.Map
  * @author Mikhail Malygin
  */
 
+@throws(classOf[C3AccessException])
 trait C3System {
 
   import C3System._
