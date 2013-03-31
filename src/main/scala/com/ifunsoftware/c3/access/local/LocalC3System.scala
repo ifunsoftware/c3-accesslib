@@ -150,7 +150,7 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
   }
 
   def search(query: String): List[SearchResultEntry] = {
-    searchManager.search(domainId, query)
+    searchManager.search(domainId, query).elements
       .map(element => SearchResultEntry(element.address, element.path, element.score, element.fragments.map(
       fragment => SearchResultFragment(fragment.field, fragment.foundStrings.toList)).toList
     )).toList
