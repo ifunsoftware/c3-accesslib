@@ -69,7 +69,7 @@ class C3FileIntegrationTest {
     }catch {
       case e:C3AccessException => {
         assertEquals(404, e.code)
-        assertEquals("Resource not found", e.message)
+        assertEquals("File not found", e.message)
       }
       case e: Throwable => fail("Expected C3AccessException")
     }

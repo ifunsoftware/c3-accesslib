@@ -92,6 +92,8 @@ class C3SystemImpl(val host: String,
 
   protected def getMetadataInternal(relativeUrl: String, extendedMeta: List[String] = List()): NodeSeq = {
 
+    log.debug("Loading metadata for url {} including extended keys: {}", relativeUrl, extendedMeta)
+
     val method = createGetMethod(relativeUrl, metadata = true)
 
     if (!extendedMeta.isEmpty) {
@@ -103,7 +105,9 @@ class C3SystemImpl(val host: String,
     executeMethod(method, status => {
       status match {
         case HttpStatus.SC_OK => {
-          XML.load(method.getResponseBodyAsStream)
+          val xml = XML.load(method.getResponseBodyAsStream)
+          log.trace("Got XML repsonse for url {}: {}", relativeUrl, xml)
+          xml
         }
         case _ => handleError(status, method); null
       }
@@ -113,6 +117,9 @@ class C3SystemImpl(val host: String,
   override def getResource(ra: String, metadata: List[String] = List()): C3Resource = new C3ResourceImpl(this, ra, getMetadataForAddress(ra, metadata))
 
   override def getFile(fullname: String): C3FileSystemNode = {
+
+    log.debug("Loading file '{}'", fullname)
+
     val metadata = getMetadataForName(encodeFilePath(fullname))
 
     val resource = new C3ResourceImpl(this, null, metadata)
@@ -135,6 +142,9 @@ class C3SystemImpl(val host: String,
   }
 
   def deleteFile(name: String) {
+
+    log.debug("Deleting file '{}'", name)
+
     val method = createDeleteMethod(fileRequestUri + encodeFilePath(name))
 
     executeMethod(method, status => {
@@ -156,6 +166,8 @@ class C3SystemImpl(val host: String,
   }
 
   private def addDataInternal(relativeUrl: String, meta: Metadata, data: DataStream): String = {
+
+    log.debug("Creating object '{}' with metadata {}", relativeUrl, meta)
 
     val method = createPostMethod(relativeUrl)
 
@@ -181,6 +193,9 @@ class C3SystemImpl(val host: String,
   }
 
   def addDirectory(fullname: String, meta: Metadata) {
+
+    log.debug("Creating directory '{}' with metadata {}", fullname, meta)
+
     val method = createPostMethod(fileRequestUri + encodeFilePath(fullname))
 
     method.addRequestHeader(new Header("x-c3-nodetype", "directory"))
@@ -198,12 +213,22 @@ class C3SystemImpl(val host: String,
   }
 
   override def search(query: String): List[SearchResultEntry] = {
+
+    log.debug("Running search query '{}'", query)
+
     val method = createGetMethod(searchRequestUri + URLEncoder.encode(query, "UTF-8"))
 
     executeMethod(method, status => {
       status match {
         case HttpStatus.SC_OK => {
-          SearchResultEntryParser.parse(XML.load(method.getResponseBodyAsStream))
+
+          val xml = XML.load(method.getResponseBodyAsStream)
+
+          log.trace("Got xml response for query '{}': {} ", query, xml)
+
+          val results = SearchResultEntryParser.parse(xml)
+          log.debug("Found {} resources ", results.length)
+          results
         }
         case _ => handleError(status, method); List()
       }
@@ -212,6 +237,9 @@ class C3SystemImpl(val host: String,
   }
 
   def updateResource(address: String, meta: Metadata, removeMeta: List[String], data: Option[DataStream]): Int = {
+
+    log.debug("Updating resource '{}'")
+    log.trace("Adding metadata: {}, removing metadata: {}", meta, removeMeta)
 
     val method = createPutMethod(resourceRequestUri + address)
 
@@ -240,6 +268,9 @@ class C3SystemImpl(val host: String,
   }
 
   override def deleteResource(address: String) {
+
+    log.debug("Deleting resource {}", address)
+
     val method = createDeleteMethod(resourceRequestUri + address)
 
     executeMethod(method, status => {
@@ -258,6 +289,9 @@ class C3SystemImpl(val host: String,
     getDataInternal(ra, 0, embedData, embedChildMetaData)
 
   def getDataInternal(address: String, version: Int, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel = {
+
+    log.debug("Loading data {} of version {}", address, version)
+    log.trace("Load children data: {}, children metadata: {}", embedData, embedChildMetaData)
 
     val relativeUrl = if (version > 0) {
       resourceRequestUri + address + "/" + version
@@ -282,6 +316,8 @@ class C3SystemImpl(val host: String,
   }
 
   def getDataAsStreamInternal(address: String, version: Int): C3InputStream = {
+    log.debug("Loading data {} of version {}", address, version)
+
     val relativeUrl = if (version > 0) {
       resourceRequestUri + address + "/" + version
     } else {
@@ -305,6 +341,8 @@ class C3SystemImpl(val host: String,
   }
 
   def moveFile(path: String, newPath: String) {
+
+    log.debug("Moving file from '{}' to '{}' ", path, newPath)
 
     val method = createPutMethod(fileRequestUri + encodeFilePath(path))
 
@@ -493,12 +531,12 @@ class C3SystemImpl(val host: String,
       val header = new Header("x-c3-sign", hash)
       method.addRequestHeader(header)
 
+
       val domainHeader = new Header("x-c3-domain", domain)
       method.addRequestHeader(domainHeader)
 
       val dateHeader = new Header("x-c3-date", dateString)
       method.addRequestHeader(dateHeader)
-
     }
   }
 

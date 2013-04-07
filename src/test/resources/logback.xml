@@ -6,7 +6,7 @@
       </encoder>
   </appender>
 
-  <logger name="com.ifunsoftware.c3.access" level="info"/>
+  <logger name="com.ifunsoftware.c3.access" level="trace"/>
 
   <root level="info">
     <appender-ref ref="STDOUT" />

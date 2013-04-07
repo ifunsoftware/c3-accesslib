@@ -2,7 +2,7 @@ package com.ifunsoftware.c3.access.impl
 
 import xml.NodeSeq
 import com.ifunsoftware.c3.access.{SearchResultFragment, SearchResultEntry}
-import collection.mutable.ArrayBuffer
+import org.slf4j.LoggerFactory
 
 /**
  * Copyright iFunSoftware 2011
@@ -11,8 +11,16 @@ import collection.mutable.ArrayBuffer
 
 object SearchResultEntryParser {
 
+  val log = LoggerFactory.getLogger(getClass)
+
   def parse(xml: NodeSeq): List[SearchResultEntry] = {
-    (xml \\ "entry").map(parseEntry(_)).toList
+    if(log.isDebugEnabled){
+      log.debug("Got response for parsed search query: '{}'", (xml \\ "query")(0).text)
+    }
+
+    val results = (xml \ "searchResults")(0)
+
+    (results \ "entry").map(parseEntry(_)).toList
   }
 
   private def parseEntry(entry: NodeSeq): SearchResultEntry = {

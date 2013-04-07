@@ -21,7 +21,7 @@ class C3ByteChannelImpl(val method: HttpMethodBase) extends C3ByteChannel {
   private val inChannel = Channels.newChannel(new BufferedInputStream(method.getResponseBodyAsStream))
 
   {
-    log.debug("Channel created {}", this)
+    log.trace("Channel created {}", this)
   }
 
   override def read(buffer: ByteBuffer): Int = inChannel.read(buffer)
@@ -35,7 +35,7 @@ class C3ByteChannelImpl(val method: HttpMethodBase) extends C3ByteChannel {
       open = false
       inChannel.close()
     } finally {
-      log.debug("Channel closed {}", this)
+      log.debug("Channel trace {}", this)
       method.releaseConnection()
     }
   }
