@@ -3,14 +3,14 @@
     <name>C3 System Access Library</name>
     <groupId>com.ifunsoftware.c3</groupId>
     <artifactId>accesslib</artifactId>
-    <version>1.0.22-SNAPSHOT</version>
+    <version>1.0.22</version>
     <inceptionYear>2011</inceptionYear>
 
     <scm>
         <connection>scm:git:ssh://github.com/ifunsoftware/c3-accesslib.git</connection>
         <url>https://github.com/ifunsoftware/c3-accesslib</url>
         <developerConnection>scm:git:ssh://git@github.com/ifunsoftware/c3-accesslib.git</developerConnection>
-      <tag>HEAD</tag>
+      <tag>v1.0.22</tag>
   </scm>
 
     <properties>
