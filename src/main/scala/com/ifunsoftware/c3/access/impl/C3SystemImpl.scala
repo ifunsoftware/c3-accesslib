@@ -92,13 +92,13 @@ class C3SystemImpl(val host: String,
 
   protected def getMetadataInternal(relativeUrl: String, extendedMeta: List[String] = List()): NodeSeq = {
 
-    log.debug("Loading metadata for url {} including extended keys: {}", relativeUrl, extendedMeta)
+    log.debug("Loading metadata for url '{}' including extended keys: '{}'", relativeUrl, extendedMeta)
 
     val method = createGetMethod(relativeUrl, metadata = true)
 
     if (!extendedMeta.isEmpty) {
       val header = new Header("x-c3-extmeta", extendedMeta.reduceLeft(_ + "," + _))
-      log.debug("Header value for extended meta {}", header.getValue)
+      log.debug("Header value for extended meta '{}'", header.getValue)
       method.addRequestHeader(header)
     }
 
@@ -106,7 +106,7 @@ class C3SystemImpl(val host: String,
       status match {
         case HttpStatus.SC_OK => {
           val xml = XML.load(method.getResponseBodyAsStream)
-          log.trace("Got XML repsonse for url {}: {}", relativeUrl, xml)
+          log.trace("Got XML repsonse for url '{}': {}", relativeUrl, xml)
           xml
         }
         case _ => handleError(status, method); null
@@ -167,7 +167,7 @@ class C3SystemImpl(val host: String,
 
   private def addDataInternal(relativeUrl: String, meta: Metadata, data: DataStream): String = {
 
-    log.debug("Creating object '{}' with metadata {}", relativeUrl, meta)
+    log.debug("Creating object '{}' with metadata '{}'", relativeUrl, meta)
 
     val method = createPostMethod(relativeUrl)
 
@@ -194,7 +194,7 @@ class C3SystemImpl(val host: String,
 
   def addDirectory(fullname: String, meta: Metadata) {
 
-    log.debug("Creating directory '{}' with metadata {}", fullname, meta)
+    log.debug("Creating directory '{}' with metadata '{}'", fullname, meta)
 
     val method = createPostMethod(fileRequestUri + encodeFilePath(fullname))
 
@@ -227,7 +227,7 @@ class C3SystemImpl(val host: String,
           log.trace("Got xml response for query '{}': {} ", query, xml)
 
           val results = SearchResultEntryParser.parse(xml)
-          log.debug("Found {} resources ", results.length)
+          log.debug("Found '{}' resources ", results.length)
           results
         }
         case _ => handleError(status, method); List()
@@ -238,8 +238,8 @@ class C3SystemImpl(val host: String,
 
   def updateResource(address: String, meta: Metadata, removeMeta: List[String], data: Option[DataStream]): Int = {
 
-    log.debug("Updating resource '{}'")
-    log.trace("Adding metadata: {}, removing metadata: {}", meta, removeMeta)
+    log.debug("Updating resource '{}'", address)
+    log.trace("Adding metadata: '{}', removing metadata: '{}'", meta, removeMeta)
 
     val method = createPutMethod(resourceRequestUri + address)
 
@@ -269,7 +269,7 @@ class C3SystemImpl(val host: String,
 
   override def deleteResource(address: String) {
 
-    log.debug("Deleting resource {}", address)
+    log.debug("Deleting resource '{}'", address)
 
     val method = createDeleteMethod(resourceRequestUri + address)
 
@@ -290,8 +290,8 @@ class C3SystemImpl(val host: String,
 
   def getDataInternal(address: String, version: Int, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel = {
 
-    log.debug("Loading data {} of version {}", address, version)
-    log.trace("Load children data: {}, children metadata: {}", embedData, embedChildMetaData)
+    log.debug("Loading data '{}' of version '{}'", address, version)
+    log.trace("Load children data: '{}', children metadata: '{}'", embedData, embedChildMetaData)
 
     val relativeUrl = if (version > 0) {
       resourceRequestUri + address + "/" + version
@@ -316,7 +316,7 @@ class C3SystemImpl(val host: String,
   }
 
   def getDataAsStreamInternal(address: String, version: Int): C3InputStream = {
-    log.debug("Loading data {} of version {}", address, version)
+    log.debug("Loading data '{}' of version '{}'", address, version)
 
     val relativeUrl = if (version > 0) {
       resourceRequestUri + address + "/" + version
@@ -389,6 +389,8 @@ class C3SystemImpl(val host: String,
       if (exception.length() > 0) {
         log.error("Failed to execute request, status " + status + ", stacktrace:\n" + exception)
       }
+
+      log.debug("Failed to execute request: http status code: {} message: '{}'", status, message)
 
       throw new C3AccessException(message, status)
     } else {
