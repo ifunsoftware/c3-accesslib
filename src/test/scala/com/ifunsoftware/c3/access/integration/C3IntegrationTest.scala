@@ -34,7 +34,7 @@ class C3IntegrationTest {
     })
   }
 
-  def createSystem() = new C3SystemFactory().createSystem(C3_HOST, C3_DOMAIN, C3_KEY)
+  def createSystem() = new C3SystemFactory().createSystem(C3_HOST, C3_DOMAIN, C3_KEY, 100, HTTP_PROXY_HOST, HTTP_PROXY_PORT)
 
   //@Test
   def testDelete(){

@@ -175,7 +175,7 @@ with C3Directory {
 
   protected def preloadDir[T](embedChildrenData: Boolean, embedChildMetaData: Set[String] = Set())(value: => T): T = {
     if (!directoryLoaded) {
-      log.debug("Directory {} is not loaded yet, loading...", address)
+      log.debug("Directory '{}' is not loaded yet, loading...", address)
 
       val channel = system.getData(address, embedChildrenData, embedChildMetaData)
 

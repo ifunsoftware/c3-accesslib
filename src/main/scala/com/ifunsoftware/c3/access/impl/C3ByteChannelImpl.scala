@@ -35,7 +35,7 @@ class C3ByteChannelImpl(val method: HttpMethodBase) extends C3ByteChannel {
       open = false
       inChannel.close()
     } finally {
-      log.debug("Channel trace {}", this)
+      log.trace("Channel closed {}", this)
       method.releaseConnection()
     }
   }
