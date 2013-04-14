@@ -11,7 +11,7 @@ import scala.Some
 import org.osgi.framework.BundleContext
 import org.slf4j.LoggerFactory
 import org.aphreet.c3.platform.domain.{Domain, DomainManager}
-import org.aphreet.c3.platform.search.SearchManager
+import org.aphreet.c3.platform.search.{SearchResultElement, SearchManager}
 import org.aphreet.c3.platform.query.{QueryConsumer, QueryManager}
 
 class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3System with DataConverter {
@@ -150,10 +150,22 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
   }
 
   def search(query: String): List[SearchResultEntry] = {
+
+    def resolvePath(address: String): String = {
+      fsManager.lookupResourcePath(address) match {
+        case Some(path) => path
+        case None => null //TODO change api to use option
+      }
+    }
+
+    def elementToEntry(element:SearchResultElement): SearchResultEntry = {
+      SearchResultEntry(element.address, resolvePath(element.address), element.score, element.fragments.map(
+        fragment => SearchResultFragment(fragment.field, fragment.foundStrings.toList)).toList
+      )
+    }
+
     searchManager.search(domainId, query).elements
-      .map(element => SearchResultEntry(element.address, element.path, element.score, element.fragments.map(
-      fragment => SearchResultFragment(fragment.field, fragment.foundStrings.toList)).toList
-    )).toList
+      .map(elementToEntry).toList
   }
 
   def query(meta: Metadata, function: C3Resource => Unit) {
