@@ -22,6 +22,7 @@ import scala.Some
 import com.ifunsoftware.c3.access.SearchResultEntry
 import scala.xml.pull._
 import org.apache.commons.codec.binary.Base64
+import sun.net.util.URLUtil
 
 /**
  * Copyright iFunSoftware 2011
@@ -216,7 +217,7 @@ class C3SystemImpl(val host: String,
 
     log.debug("Running search query '{}'", query)
 
-    val method = createGetMethod(searchRequestUri + URLEncoder.encode(query, "UTF-8"))
+    val method = createGetMethod(searchRequestUri + URLEncoder.encode(query, "UTF-8").replaceAll("\\+", "%20"))
 
     executeMethod(method, status => {
       status match {
@@ -382,9 +383,9 @@ class C3SystemImpl(val host: String,
 
       val errorTag = (xml \ "error")(0)
 
-      val message = ((errorTag \ "message")(0)).text
+      val message = (errorTag \ "message")(0).text
 
-      val exception = ((errorTag \ "exception")(0)).text
+      val exception = (errorTag \ "exception")(0).text
 
       if (exception.length() > 0) {
         log.error("Failed to execute request, status " + status + ", stacktrace:\n" + exception)

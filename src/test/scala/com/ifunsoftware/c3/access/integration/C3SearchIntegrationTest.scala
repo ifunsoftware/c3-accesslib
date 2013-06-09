@@ -11,7 +11,7 @@ class C3SearchIntegrationTest {
     val system = new C3SystemFactory().createSystem(C3_HOST,
       C3_DOMAIN, C3_KEY, 100, HTTP_PROXY_HOST, HTTP_PROXY_PORT)
 
-    println(system.search("Hello"))
+    println(system.search("Hello World! tags:value"))
 
   }
 }
