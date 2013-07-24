@@ -17,7 +17,7 @@ class C3FileIntegrationTest {
   @Test
   def testFileSystemCRUD(){
 
-    val system = new C3SystemFactory().createSystem(C3_HOST, C3_DOMAIN, C3_KEY, 100, HTTP_PROXY_HOST, HTTP_PROXY_PORT)
+    val system = new C3SystemFactory().createSystem(C3_HOST, C3_DOMAIN, C3_KEY, 100, HTTP_PROXY_CONFIG)
 
     val node = system.getFile("/")
 

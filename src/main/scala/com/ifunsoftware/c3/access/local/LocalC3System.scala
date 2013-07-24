@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.aphreet.c3.platform.domain.{Domain, DomainManager}
 import org.aphreet.c3.platform.search.{SearchResultElement, SearchManager}
 import org.aphreet.c3.platform.query.{QueryConsumer, QueryManager}
+import com.ifunsoftware.c3.access.fs.C3FileSystemNode
 
 class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3System with DataConverter {
 
@@ -33,7 +34,7 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
   val domainId = {
     domainManager.domainById(domain) match {
       case Some(domainInstance) => domainInstance.id
-      case None => domainManager.domainList.filter(_.name == domain).headOption match {
+      case None => domainManager.domainList.find(_.name == domain) match {
         case Some(domainInstance) => domainInstance.id
         case None => throw new C3AccessException("Can't find domain: " + domain)
       }
@@ -52,15 +53,15 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     }
   }
 
-  def getData(ra: String): C3ByteChannel = {
+  def getData(ra: String): Option[C3ByteChannel] = {
     accessManager.getOption(ra) match {
       case Some(resource) => {
 
         retrieveAccessTokens(READ).checkAccess(resource)
 
-        new LocalC3ByteChannel(resource.versions.last.data)
+        Some(new LocalC3ByteChannel(resource.versions.last.data))
       }
-      case None => throw new C3AccessException("Resource " + ra + " is not found")
+      case None => throw new C3AccessException("Resource " + ra + " is not found") // TODO
     }
   }
 
@@ -84,12 +85,12 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
     accessManager.add(resource)
   }
 
-  def getFile(name: String) = {
+  def getFile(name: String): Option[C3FileSystemNode] = {
     val internalNode = fsManager.getNode(domainId, name)
 
     retrieveAccessTokens(READ).checkAccess(internalNode.resource)
 
-    LocalC3FileSystemNode(this, internalNode, name)
+    Some(LocalC3FileSystemNode(this, internalNode, name))
   }
 
   def deleteResource(ra: String) {

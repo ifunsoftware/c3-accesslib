@@ -34,7 +34,7 @@ class C3IntegrationTest {
     })
   }
 
-  def createSystem() = new C3SystemFactory().createSystem(C3_HOST, C3_DOMAIN, C3_KEY, 100, HTTP_PROXY_HOST, HTTP_PROXY_PORT)
+  def createSystem() = new C3SystemFactory().createSystem(C3_HOST, C3_DOMAIN, C3_KEY, 100, HTTP_PROXY_CONFIG)
 
   //@Test
   def testDelete(){
@@ -54,11 +54,15 @@ class C3IntegrationTest {
 
     val resource = system.getResource(address)
 
-    checkMetadataContains(meta, resource.metadata)
+    assertTrue("Resource should exist", resource.isDefined)
+
+    checkMetadataContains(meta, resource.get.metadata)
     
     val dataChannel = system.getData(address)
 
-    checkContentMatch(expectedContent, dataChannel)
+    assertTrue("Data channel should exist", dataChannel.isDefined)
+
+    checkContentMatch(expectedContent, dataChannel.get)
 
     address
   }
@@ -73,11 +77,13 @@ class C3IntegrationTest {
 
     val resource = system.getResource(address)
 
-    resource.update(MetadataUpdate(newMeta), DataStream(expectedContent))
+    assertTrue("Resource should exist", resource.isDefined)
 
-    checkMetadataContains(newMeta, resource.metadata)
+    resource.get.update(MetadataUpdate(newMeta), DataStream(expectedContent))
 
-    val version = resource.versions.tail.head
+    checkMetadataContains(newMeta, resource.get.metadata)
+
+    val version = resource.get.versions.tail.head
 
     val dataChannel = version.getData
 

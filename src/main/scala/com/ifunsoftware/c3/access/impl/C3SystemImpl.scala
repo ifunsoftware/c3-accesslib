@@ -22,7 +22,6 @@ import scala.Some
 import com.ifunsoftware.c3.access.SearchResultEntry
 import scala.xml.pull._
 import org.apache.commons.codec.binary.Base64
-import sun.net.util.URLUtil
 
 /**
  * Copyright iFunSoftware 2011
@@ -33,8 +32,7 @@ class C3SystemImpl(val host: String,
                    val domain: String,
                    val key: String,
                    val maxConnections: Int = 100,
-                   val proxyHost: String = null,
-                   val proxyPort: Int = 0) extends C3System {
+                   val proxyConfig: Option[ProxyConfig] = None) extends C3System {
 
   val log = LoggerFactory.getLogger(getClass)
 
@@ -78,20 +76,18 @@ class C3SystemImpl(val host: String,
     val hostConfiguration = new HostConfiguration()
     hostConfiguration.setHost(hostname, port, protocol)
 
-    if (proxyHost != null) {
-      hostConfiguration.setProxy(proxyHost, proxyPort)
+    proxyConfig.foreach { config =>
+      hostConfiguration.setProxy(config.host, config.port)
     }
 
     hostConfiguration
   }
 
+  def getMetadataForName(name: String): Option[NodeSeq] = getMetadataInternal(fileRequestUri + name)
 
-  def getMetadataForName(name: String): NodeSeq = getMetadataInternal(fileRequestUri + name)
+  def getMetadataForAddress(ra: String, extendedMeta: List[String] = List()): Option[NodeSeq] = getMetadataInternal(resourceRequestUri + ra, extendedMeta)
 
-
-  def getMetadataForAddress(ra: String, extendedMeta: List[String] = List()): NodeSeq = getMetadataInternal(resourceRequestUri + ra, extendedMeta)
-
-  protected def getMetadataInternal(relativeUrl: String, extendedMeta: List[String] = List()): NodeSeq = {
+  protected def getMetadataInternal(relativeUrl: String, extendedMeta: List[String] = List()): Option[NodeSeq] = {
 
     log.debug("Loading metadata for url '{}' including extended keys: '{}'", relativeUrl, extendedMeta)
 
@@ -107,38 +103,43 @@ class C3SystemImpl(val host: String,
       status match {
         case HttpStatus.SC_OK => {
           val xml = XML.load(method.getResponseBodyAsStream)
-          log.trace("Got XML repsonse for url '{}': {}", relativeUrl, xml)
-          xml
+          log.trace("Got XML response for url '{}': {}", relativeUrl, xml)
+          Some(xml)
         }
-        case _ => handleError(status, method); null
+        case _ => handleError(status, method); None
       }
     })
   }
 
-  override def getResource(ra: String, metadata: List[String] = List()): C3Resource = new C3ResourceImpl(this, ra, getMetadataForAddress(ra, metadata))
+  override def getResource(ra: String, metadata: List[String] = List()): Option[C3Resource] = {
+    getMetadataForAddress(ra, metadata).map { meta =>
+      new C3ResourceImpl(this, ra, meta)
+    }
+  }
 
-  override def getFile(fullname: String): C3FileSystemNode = {
+  override def getFile(fullname: String): Option[C3FileSystemNode] = {
 
     log.debug("Loading file '{}'", fullname)
 
-    val metadata = getMetadataForName(encodeFilePath(fullname))
+    getMetadataForName(encodeFilePath(fullname)).map {
+      metadata =>
+        val resource = new C3ResourceImpl(this, null, metadata)
 
-    val resource = new C3ResourceImpl(this, null, metadata)
+        val isDir = resource.systemMetadata.getOrElse("c3.fs.nodetype", "") == "directory"
 
-    val isDir = resource.systemMetadata.getOrElse("c3.fs.nodetype", "") == "directory"
+        val name = resource.systemMetadata.get("c3.fs.nodename") match {
+          case Some(value) => value
+          case None => {
+            if (fullname == "/") "/"
+            else throw new C3AccessException(s"File $fullname does not contain 'c3.fs.nodename' system metadata")
+          }
+        }
 
-    val name = resource.systemMetadata.get("c3.fs.nodename") match {
-      case Some(value) => value
-      case None => {
-        if (fullname == "/") "/"
-        else throw new C3AccessException("File " + fullname + " does not contain 'c3.fs.nodename' system metadata")
-      }
-    }
-
-    if (isDir) {
-      new C3DirectoryImpl(this, resource.address, metadata, name, fullname)
-    } else {
-      new C3FileImpl(this, resource.address, metadata, name, fullname)
+        if (isDir) {
+          new C3DirectoryImpl(this, resource.address, metadata, name, fullname)
+        } else {
+          new C3FileImpl(this, resource.address, metadata, name, fullname)
+        }
     }
   }
 
@@ -180,10 +181,10 @@ class C3SystemImpl(val host: String,
 
           val xml = XML.load(method.getResponseBodyAsStream)
 
-          val uploadedTags = (xml \ "uploaded")
+          val uploadedTags = xml \ "uploaded"
 
           if (uploadedTags.size > 0) {
-            ((uploadedTags(0)) \ "@address").text
+            (uploadedTags(0) \ "@address").text
           } else {
             null
           }
@@ -193,7 +194,7 @@ class C3SystemImpl(val host: String,
     })
   }
 
-  def addDirectory(fullname: String, meta: Metadata) {
+  def addDirectory(fullname: String, meta: Metadata): Unit = {
 
     log.debug("Creating directory '{}' with metadata '{}'", fullname, meta)
 
@@ -207,8 +208,8 @@ class C3SystemImpl(val host: String,
 
     executeMethod(method, status => {
       status match {
-        case HttpStatus.SC_CREATED => Unit
-        case _ => handleError(status, method); null
+        case HttpStatus.SC_CREATED =>  // OK
+        case _                     =>  handleError(status, method)
       }
     })
   }
@@ -283,13 +284,13 @@ class C3SystemImpl(val host: String,
   }
 
   override
-  def getData(ra: String): C3ByteChannel =
+  def getData(ra: String): Option[C3ByteChannel] =
     getData(ra, embedData = false, embedChildMetaData = Set())
 
-  def getData(ra: String, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel =
+  def getData(ra: String, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): Option[C3ByteChannel] =
     getDataInternal(ra, 0, embedData, embedChildMetaData)
 
-  def getDataInternal(address: String, version: Int, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): C3ByteChannel = {
+  def getDataInternal(address: String, version: Int, embedData: Boolean = false, embedChildMetaData: Set[String] = Set()): Option[C3ByteChannel] = {
 
     log.debug("Loading data '{}' of version '{}'", address, version)
     log.trace("Load children data: '{}', children metadata: '{}'", embedData, embedChildMetaData)
@@ -304,7 +305,7 @@ class C3SystemImpl(val host: String,
 
     val status = httpClient.executeMethod(method)
     status match {
-      case HttpStatus.SC_OK => new C3ByteChannelImpl(method)
+      case HttpStatus.SC_OK => Some(new C3ByteChannelImpl(method))
       case _ =>
         try {
           method.releaseConnection()
@@ -312,11 +313,11 @@ class C3SystemImpl(val host: String,
           case e: Throwable => //do nothing here
         }
         handleError(status, method)
-        null
+        None
     }
   }
 
-  def getDataAsStreamInternal(address: String, version: Int): C3InputStream = {
+  def getDataAsStreamInternal(address: String, version: Int): Option[C3InputStream] = {
     log.debug("Loading data '{}' of version '{}'", address, version)
 
     val relativeUrl = if (version > 0) {
@@ -329,7 +330,7 @@ class C3SystemImpl(val host: String,
 
     val status = httpClient.executeMethod(method)
     status match {
-      case HttpStatus.SC_OK => new C3InputStreamImpl(method)
+      case HttpStatus.SC_OK => Some(new C3InputStreamImpl(method))
       case _ =>
         try {
           method.releaseConnection()
@@ -337,7 +338,7 @@ class C3SystemImpl(val host: String,
           case e: Throwable => //do nothing here
         }
         handleError(status, method)
-        null
+        None
     }
   }
 
@@ -408,7 +409,7 @@ class C3SystemImpl(val host: String,
 
       reader.close()
 
-      throw new C3AccessException(("Filed to execute method, http status is " + status), status)
+      throw new C3AccessException(s"Failed to execute method, http status is $status", status)
     }
   }
 
@@ -418,7 +419,7 @@ class C3SystemImpl(val host: String,
                               embedChildMetaData: Set[String] = Set()): HttpMethodBase = {
     val method =
       if (metadata)
-        new GetMethod(host + relativeUrl + "?metadata")
+        new GetMethod(s"${host + relativeUrl}?metadata")
       else
         new GetMethod(host + relativeUrl)
 

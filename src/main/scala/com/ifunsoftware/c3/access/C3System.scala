@@ -12,13 +12,13 @@ trait C3System {
 
   import C3System._
 
-  def getData(ra: String): C3ByteChannel
+  def getData(ra: String): Option[C3ByteChannel]
 
-  def getResource(ra: String, metadata: List[String] = List()): C3Resource
+  def getResource(ra: String, metadata: List[String] = List()): Option[C3Resource]
 
   def addResource(meta: Metadata, data: DataStream): String
 
-  def getFile(name: String): C3FileSystemNode
+  def getFile(name: String): Option[C3FileSystemNode]
 
   def deleteResource(ra: String)
 

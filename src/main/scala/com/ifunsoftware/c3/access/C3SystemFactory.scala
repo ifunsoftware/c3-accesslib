@@ -10,8 +10,8 @@ import local.LocalC3System
 
 class C3SystemFactory {
 
-  def createSystem(host: String, domain: String, key: String, maxConnections: Int, proxyHost: String, proxyPort: Int): C3System = {
-    new C3SystemImpl(host, domain, key, maxConnections, proxyHost, proxyPort)
+  def createSystem(host: String, domain: String, key: String, maxConnections: Int, proxyConfig: Option[ProxyConfig] = None): C3System = {
+    new C3SystemImpl(host, domain, key, maxConnections, proxyConfig)
   }
 
   def createSystem(host: String, domain: String, key: String): C3System = {
@@ -26,3 +26,5 @@ class C3SystemFactory {
     new LocalC3System(domain, bundleContext)
   }
 }
+
+case class ProxyConfig(host: String, port: Int)
