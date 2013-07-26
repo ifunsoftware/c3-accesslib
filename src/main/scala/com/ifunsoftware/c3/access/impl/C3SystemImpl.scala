@@ -269,7 +269,7 @@ class C3SystemImpl(val host: String,
     })
   }
 
-  override def deleteResource(address: String) {
+  override def deleteResource(address: String): Unit = {
 
     log.debug("Deleting resource '{}'", address)
 
@@ -277,7 +277,7 @@ class C3SystemImpl(val host: String,
 
     executeMethod(method, status => {
       status match {
-        case HttpStatus.SC_OK => Unit
+        case HttpStatus.SC_OK =>
         case _ => handleError(status, method)
       }
     })

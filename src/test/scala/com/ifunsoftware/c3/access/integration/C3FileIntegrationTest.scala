@@ -19,7 +19,7 @@ class C3FileIntegrationTest {
 
     val system = new C3SystemFactory().createSystem(C3_HOST, C3_DOMAIN, C3_KEY, 100, HTTP_PROXY_CONFIG)
 
-    val node = system.getFile("/")
+    val node = system.getFile("/").get // Root directory should be there
 
     val dir = node.asInstanceOf[C3Directory]
 

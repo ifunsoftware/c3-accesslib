@@ -1,7 +1,6 @@
 package com.ifunsoftware.c3.access.integration
 
 import com.ifunsoftware.c3.access.C3System._
-import com.ifunsoftware.c3.access.MetadataUpdate
 import com.ifunsoftware.c3.access._
 import java.io.BufferedReader
 import java.nio.channels.{ReadableByteChannel, Channels}
