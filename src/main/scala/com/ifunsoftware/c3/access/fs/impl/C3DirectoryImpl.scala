@@ -177,9 +177,11 @@ with C3Directory {
     if (!directoryLoaded) {
       log.debug("Directory '{}' is not loaded yet, loading...", address)
 
-      val channel = system.getData(address, embedChildrenData, embedChildMetaData)
+      val xml = system.getData(address, embedChildrenData, embedChildMetaData) match {
+        case Some(channel) => XML.load(Channels.newReader(channel, "UTF-8"))
+        case _ => throw new C3AccessException(s"Couldn't retrieve data from C3 for resource $address")
+      }
 
-      val xml = XML.load(Channels.newReader(channel, "UTF-8"))
       updateFieldsFromDirectoryXml(xml)
     }
     value

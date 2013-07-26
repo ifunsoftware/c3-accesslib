@@ -29,7 +29,7 @@ class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer
 
     resource.metadata ++= meta.updated.map(e => (e._1, e._2.get))
 
-    meta.removed.foreach(resource.metadata.remove(_))
+    meta.removed.foreach(resource.metadata.remove)
 
     system.update(resource)
   }

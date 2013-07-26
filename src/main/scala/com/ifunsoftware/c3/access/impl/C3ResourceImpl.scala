@@ -148,7 +148,7 @@ class C3ResourceImpl(val system: C3SystemImpl, var _address: String, val xml: No
 
       log.debug("Resource {} is not loaded yet, loading...", address)
 
-      updateFieldsFromXmlDescription(system.getMetadataForAddress(address))
+      updateFieldsFromXmlDescription(system.getMetadataForAddress(address).getOrElse(throw new C3AccessException(s"No metadata is found for resource $address")))
     }
     value
   }

@@ -1,7 +1,7 @@
 package com.ifunsoftware.c3.access.impl
 
 import java.util.Date
-import com.ifunsoftware.c3.access.{C3InputStream, C3ByteChannel, C3Version}
+import com.ifunsoftware.c3.access.{C3AccessException, C3InputStream, C3ByteChannel, C3Version}
 
 /**
  * Copyright iFunSoftware 2011
@@ -18,8 +18,10 @@ class C3VersionImpl(val system: C3SystemImpl,
   def date: Date = _date
 
   def getData: C3ByteChannel = system.getDataInternal(resource.address, _number)
+    .getOrElse(throw new C3AccessException("No data for specified version"))
 
   def getDataStream: C3InputStream = system.getDataAsStreamInternal(resource.address, _number)
+    .getOrElse(throw new C3AccessException("No data for specified version"))
 
   override def toString: String = {
     val builder = new StringBuilder
