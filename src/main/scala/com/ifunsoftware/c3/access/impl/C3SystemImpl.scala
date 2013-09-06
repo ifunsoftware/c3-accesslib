@@ -131,7 +131,7 @@ class C3SystemImpl(val host: String,
       case Some(value) => value
       case None => {
         if (fullname == "/") "/"
-        else throw new C3AccessException("File " + fullname + " does not contain 'c3.fs.nodename' system metadata")
+        else throw new C3UnknownErrorException("File " + fullname + " does not contain 'c3.fs.nodename' system metadata")
       }
     }
 
@@ -393,7 +393,7 @@ class C3SystemImpl(val host: String,
 
       log.debug("Failed to execute request: http status code: {} message: '{}'", status, message)
 
-      throw new C3AccessException(message, status)
+      C3AccessError.handleErrorCode(message, status)
     } else {
 
       val reader = new InputStreamReader(method.getResponseBodyAsStream, "UTF-8")
@@ -408,7 +408,7 @@ class C3SystemImpl(val host: String,
 
       reader.close()
 
-      throw new C3AccessException(("Filed to execute method, http status is " + status), status)
+      C3AccessError.handleErrorCode("Filed to execute method, http status is " + status, status)
     }
   }
 
@@ -483,7 +483,7 @@ class C3SystemImpl(val host: String,
             source.close()
           }
         }
-        case _ => throw new C3AccessException("Failed to execute query, status is " + status, status)
+        case _ => C3AccessError.handleErrorCode("Failed to execute query, status is " + status, status)
       }
     )
   }

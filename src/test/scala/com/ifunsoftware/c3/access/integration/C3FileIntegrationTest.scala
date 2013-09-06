@@ -2,7 +2,7 @@ package com.ifunsoftware.c3.access.integration
 
 import com.ifunsoftware.c3.access.C3System._
 import com.ifunsoftware.c3.access.fs.C3Directory
-import com.ifunsoftware.c3.access.{C3AccessException, DataStream, C3SystemFactory}
+import com.ifunsoftware.c3.access.{C3NotFoundException, C3AccessException, DataStream, C3SystemFactory}
 import io.Source
 import org.junit.Assert._
 import org.junit.Test
@@ -67,8 +67,7 @@ class C3FileIntegrationTest {
       system.getFile(testDir.fullname)
       fail("Expected C3AccessException")
     }catch {
-      case e:C3AccessException => {
-        assertEquals(404, e.code)
+      case e:C3NotFoundException => {
         assertEquals("File not found", e.message)
       }
       case e: Throwable => fail("Expected C3AccessException")

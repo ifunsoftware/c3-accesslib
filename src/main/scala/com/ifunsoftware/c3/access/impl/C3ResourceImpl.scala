@@ -130,7 +130,7 @@ class C3ResourceImpl(val system: C3SystemImpl, var _address: String, val xml: No
 
         val versionNumber = number
 
-        array += (new C3VersionImpl(system, this, versionDate, dataLength, dataHash, versionNumber))
+        array += new C3VersionImpl(system, this, versionDate, dataLength, dataHash, versionNumber)
 
         number = number + 1
       }
@@ -139,7 +139,7 @@ class C3ResourceImpl(val system: C3SystemImpl, var _address: String, val xml: No
 
       loaded = true
     } catch {
-      case e: Throwable => throw new C3AccessException("Failed to parse resource xml", e)
+      case e: Throwable => C3AccessError.handleException(e)
     }
   }
 

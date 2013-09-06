@@ -94,8 +94,7 @@ class C3IntegrationTest {
       system.getResource(address)
       fail("Resource can't be loaded after delete")
     }catch{
-      case e:C3AccessException => {
-        assertEquals(404, e.code)
+      case e:C3NotFoundException => {
         assertEquals("Resource not found", e.message)
       }
       case e: Throwable => fail("Expected C3AccessException")

@@ -1,6 +1,7 @@
 package com.ifunsoftware.c3.access.local
 
 import com.ifunsoftware.c3.access._
+import com.ifunsoftware.c3.access.C3AccessError.handlingExceptions
 import com.ifunsoftware.c3.access.local.fs.LocalC3FileSystemNode
 import com.ifunsoftware.c3.access.C3System.Metadata
 import org.aphreet.c3.platform.access.AccessManager
@@ -33,9 +34,9 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
   val domainId = {
     domainManager.domainById(domain) match {
       case Some(domainInstance) => domainInstance.id
-      case None => domainManager.domainList.filter(_.name == domain).headOption match {
+      case None => domainManager.domainList.find(_.name == domain) match {
         case Some(domainInstance) => domainInstance.id
-        case None => throw new C3AccessException("Can't find domain: " + domain)
+        case None => throw new C3PermissionException("Can't find domain: " + domain)
       }
     }
   }
@@ -43,24 +44,28 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
   val accessControlParams = Map("domain" -> domainId)
 
   def fetchResource(ra: String): Resource = {
-    accessManager.getOption(ra) match {
-      case Some(resource) => {
-        retrieveAccessTokens(READ).checkAccess(resource)
-        resource
+    handlingExceptions{
+      accessManager.getOption(ra) match {
+        case Some(resource) => {
+          retrieveAccessTokens(READ).checkAccess(resource)
+          resource
+        }
+        case None => throw new C3NotFoundException("Can't find resource for address " + ra)
       }
-      case None => throw new C3AccessException("Can't find resource for address " + ra)
     }
   }
 
   def getData(ra: String): C3ByteChannel = {
-    accessManager.getOption(ra) match {
-      case Some(resource) => {
+    handlingExceptions{
+      accessManager.getOption(ra) match {
+        case Some(resource) => {
 
-        retrieveAccessTokens(READ).checkAccess(resource)
+          retrieveAccessTokens(READ).checkAccess(resource)
 
-        new LocalC3ByteChannel(resource.versions.last.data)
+          new LocalC3ByteChannel(resource.versions.last.data)
+        }
+        case None => throw new C3NotFoundException("Resource " + ra + " is not found")
       }
-      case None => throw new C3AccessException("Resource " + ra + " is not found")
     }
   }
 
@@ -69,84 +74,98 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
   }
 
   def addResource(meta: Metadata, data: DataStream): String = {
+    handlingExceptions{
+      val accessTokens = retrieveAccessTokens(CREATE)
 
-    val accessTokens = retrieveAccessTokens(CREATE)
+      val resource = new Resource
+      for((key, value) <- meta){
+        resource.metadata(key) = value.get
+      }
 
-    val resource = new Resource
-    for((key, value) <- meta){
-      resource.metadata(key) = value.get
+      resource.addVersion(ResourceVersion(data))
+
+      accessTokens.updateMetadata(resource)
+
+      accessManager.add(resource)
     }
-
-    resource.addVersion(ResourceVersion(data))
-
-    accessTokens.updateMetadata(resource)
-
-    accessManager.add(resource)
   }
 
   def getFile(name: String) = {
-    val internalNode = fsManager.getNode(domainId, name)
+    handlingExceptions{
+      val internalNode = fsManager.getNode(domainId, name)
 
-    retrieveAccessTokens(READ).checkAccess(internalNode.resource)
+      retrieveAccessTokens(READ).checkAccess(internalNode.resource)
 
-    LocalC3FileSystemNode(this, internalNode, name)
+      LocalC3FileSystemNode(this, internalNode, name)
+    }
   }
 
   def deleteResource(ra: String) {
+    handlingExceptions{
+      val accessTokens = retrieveAccessTokens(DELETE)
 
-    val accessTokens = retrieveAccessTokens(DELETE)
-
-    accessManager.getOption(ra) match {
-      case Some(resource) => {
-        accessTokens.checkAccess(resource)
-        accessManager.delete(ra)
+      accessManager.getOption(ra) match {
+        case Some(resource) => {
+          accessTokens.checkAccess(resource)
+          accessManager.delete(ra)
+        }
+        case None => throw new C3NotFoundException("Can't find resource " + ra)
       }
-      case None => throw new C3AccessException("Can't find resource " + ra)
     }
   }
 
   def deleteFile(name: String) {
-    val node = fsManager.getNode(domainId, name)
+    handlingExceptions{
+      val node = fsManager.getNode(domainId, name)
 
-    retrieveAccessTokens(DELETE).checkAccess(node.resource)
+      retrieveAccessTokens(DELETE).checkAccess(node.resource)
 
-    fsManager.deleteNode(domainId, name)
+      fsManager.deleteNode(domainId, name)
+    }
   }
 
   def retrieveAccessTokens(action: Action): AccessTokens = {
-    accessControlManager.retrieveAccessTokens(LocalAccess, action, accessControlParams)
+    handlingExceptions{
+      accessControlManager.retrieveAccessTokens(LocalAccess, action, accessControlParams)
+    }
   }
 
   def update(resource: Resource) {
-    accessManager.update(resource)
+    handlingExceptions{
+      accessManager.update(resource)
+    }
   }
 
   def createDirectory(fullName: String, meta: Metadata) {
+    handlingExceptions{
+      retrieveAccessTokens(CREATE)
 
-    retrieveAccessTokens(CREATE)
-
-    fsManager.createDirectory(domainId, fullName, C3System.metadataToStringMap(meta).toMap)
+      fsManager.createDirectory(domainId, fullName, C3System.metadataToStringMap(meta).toMap)
+    }
   }
 
   def createFile(fullName: String, meta: Metadata, data: DataStream) {
+    handlingExceptions{
+      val accessTokens = retrieveAccessTokens(CREATE)
 
-    val accessTokens = retrieveAccessTokens(CREATE)
+      val resource = new Resource
 
-    val resource = new Resource
+      for((key, value) <- meta){
+        resource.metadata(key) = value.get
+      }
 
-    for((key, value) <- meta){
-      resource.metadata(key) = value.get
+      resource.addVersion(ResourceVersion(data))
+
+      accessTokens.updateMetadata(resource)
+
+      fsManager.createFile(domainId, fullName, resource)
     }
-
-    resource.addVersion(ResourceVersion(data))
-
-    accessTokens.updateMetadata(resource)
-
-    fsManager.createFile(domainId, fullName, resource)
   }
 
   def move(oldPath: String, newPath: String) {
-    fsManager.moveNode(domainId, oldPath, newPath)
+    handlingExceptions{
+      fsManager.moveNode(domainId, oldPath, newPath)
+    }
   }
 
   def search(query: String): List[SearchResultEntry] = {
@@ -163,21 +182,24 @@ class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3Sys
         fragment => SearchResultFragment(fragment.field, fragment.foundStrings.toList)).toList
       )
     }
-
-    searchManager.search(domainId, query).elements
-      .map(elementToEntry).toList
+    handlingExceptions{
+      searchManager.search(domainId, query).elements
+        .map(elementToEntry).toList
+    }
   }
 
   def query(meta: Metadata, function: C3Resource => Unit) {
-    queryManager.executeQuery(fields = C3System.metadataToStringMap(meta).toMap, systemFields = Map(Domain.MD_FIELD -> domainId), consumer = new QueryConsumer {
-      def close() {}
+    handlingExceptions{
+      queryManager.executeQuery(fields = C3System.metadataToStringMap(meta).toMap, systemFields = Map(Domain.MD_FIELD -> domainId), consumer = new QueryConsumer {
+        def close() {}
 
-      def consume(resource: Resource): Boolean = {
-        val c3resource = new LocalC3Resource(thisC3system, resource)
-        function(c3resource)
-        true
-      }
-    })
+        def consume(resource: Resource): Boolean = {
+          val c3resource = new LocalC3Resource(thisC3system, resource)
+          function(c3resource)
+          true
+        }
+      })
+    }
   }
 
   def resolveService[T](clazz: Class[T]): T = {

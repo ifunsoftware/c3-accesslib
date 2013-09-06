@@ -1,8 +1,9 @@
 package com.ifunsoftware.c3.access.local
 
-import com.ifunsoftware.c3.access.{MetadataKeep, MetadataChange, DataStream, C3Resource}
+import com.ifunsoftware.c3.access._
 import org.aphreet.c3.platform.resource.{Resource, ResourceVersion}
 import org.aphreet.c3.platform.accesscontrol.UPDATE
+import scala.Some
 
 class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer) extends C3Resource with DataConverter {
 
@@ -23,15 +24,18 @@ class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer
   def versions = resource.versions.map(new LocalC3Version(_)).toList
 
   protected def updateInternal(meta: MetadataChange, data: Option[DataStream]) {
-    system.retrieveAccessTokens(UPDATE).checkAccess(resource)
 
-    data.foreach(stream => resource.addVersion(ResourceVersion(stream)))
+    C3AccessError.handlingExceptions{
+      system.retrieveAccessTokens(UPDATE).checkAccess(resource)
 
-    resource.metadata ++= meta.updated.map(e => (e._1, e._2.get))
+      data.foreach(stream => resource.addVersion(ResourceVersion(stream)))
 
-    meta.removed.foreach(resource.metadata.remove(_))
+      resource.metadata ++= meta.updated.map(e => (e._1, e._2.get))
 
-    system.update(resource)
+      meta.removed.foreach(resource.metadata.remove)
+
+      system.update(resource)
+    }
   }
 
   def update(meta: MetadataChange, data: DataStream) {
