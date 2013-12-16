@@ -5,7 +5,6 @@ import xml.NodeSeq
 import org.joda.time.format.ISODateTimeFormat
 import collection.mutable.ArrayBuffer
 import com.ifunsoftware.c3.access._
-import com.ifunsoftware.c3.access.C3System.Metadata
 import org.slf4j.LoggerFactory
 import scala.collection.Map
 
@@ -139,7 +138,7 @@ class C3ResourceImpl(val system: C3SystemImpl, var _address: String, val xml: No
 
       loaded = true
     } catch {
-      case e: Throwable => C3AccessError.handleException(e)
+      case e: Throwable => throw new C3UnknownErrorException("Failed to parse resource definition", e)
     }
   }
 

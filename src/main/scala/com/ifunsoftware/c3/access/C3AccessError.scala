@@ -36,13 +36,4 @@ object C3AccessError{
     }
   }
 
-  def handleErrorCode(message:String, code: Int) {
-    code match {
-      case HttpStatus.SC_NOT_FOUND => throw new C3NotFoundException(message)
-      case HttpStatus.SC_FORBIDDEN => throw new C3PermissionException(message)
-      case HttpStatus.SC_BAD_REQUEST => throw new C3IncorrectRequestException(message)
-      case _ => throw new C3UnknownErrorException(message, code)
-    }
-  }
-
 }

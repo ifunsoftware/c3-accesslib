@@ -393,7 +393,7 @@ class C3SystemImpl(val host: String,
 
       log.debug("Failed to execute request: http status code: {} message: '{}'", status, message)
 
-      C3AccessError.handleErrorCode(message, status)
+      handleErrorCode(message, status)
     } else {
 
       val reader = new InputStreamReader(method.getResponseBodyAsStream, "UTF-8")
@@ -408,7 +408,7 @@ class C3SystemImpl(val host: String,
 
       reader.close()
 
-      C3AccessError.handleErrorCode("Filed to execute method, http status is " + status, status)
+      handleErrorCode("Filed to execute method, http status is " + status, status)
     }
   }
 
@@ -483,7 +483,7 @@ class C3SystemImpl(val host: String,
             source.close()
           }
         }
-        case _ => C3AccessError.handleErrorCode("Failed to execute query, status is " + status, status)
+        case _ => handleErrorCode("Failed to execute query, status is " + status, status)
       }
     )
   }
@@ -606,5 +606,14 @@ class C3SystemImpl(val host: String,
 
   private def encodeFilePath(path: String): String = {
     path.split("/").map(URLEncoder.encode(_, "UTF-8")).mkString("/")
+  }
+
+  private def handleErrorCode(message:String, code: Int) {
+    code match {
+      case HttpStatus.SC_NOT_FOUND => throw new C3NotFoundException(message)
+      case HttpStatus.SC_FORBIDDEN => throw new C3PermissionException(message)
+      case HttpStatus.SC_BAD_REQUEST => throw new C3IncorrectRequestException(message)
+      case _ => throw new C3UnknownErrorException(message, code)
+    }
   }
 }
