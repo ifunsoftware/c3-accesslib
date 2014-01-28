@@ -4,6 +4,7 @@ import com.ifunsoftware.c3.access._
 import org.aphreet.c3.platform.resource.{Resource, ResourceVersion}
 import org.aphreet.c3.platform.accesscontrol.UPDATE
 import scala.Some
+import scala.language.implicitConversions
 
 class LocalC3Resource(val system: LocalC3System, val resource: ResourceContainer) extends C3Resource with DataConverter {
 

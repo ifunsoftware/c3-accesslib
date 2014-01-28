@@ -4,9 +4,7 @@ import org.aphreet.c3.platform.exception.ResourceNotFoundException
 import org.aphreet.c3.platform.filesystem.{FSWrongRequestException, FSNotFoundException}
 import org.aphreet.c3.platform.auth.exception.AuthFailedException
 import org.aphreet.c3.platform.accesscontrol.AccessControlException
-import org.aphreet.c3.platform.domain.DomainException
-import org.apache.commons.httpclient.HttpStatus
-import org.aphreet.c3.platform.search.SearchQueryException
+import org.aphreet.c3.platform.search.api.SearchQueryException
 
 /**
  * Author: Mikhail Malygin

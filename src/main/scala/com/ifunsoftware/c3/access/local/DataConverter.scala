@@ -3,6 +3,7 @@ package com.ifunsoftware.c3.access.local
 import com.ifunsoftware.c3.access.impl.{FileDataStream, ByteArrayDataStream}
 import org.aphreet.c3.platform.resource.{DataStream => InternalDataStream}
 import com.ifunsoftware.c3.access.DataStream
+import scala.language.implicitConversions
 
 trait DataConverter {
 

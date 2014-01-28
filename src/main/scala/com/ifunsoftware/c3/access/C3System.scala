@@ -2,6 +2,7 @@ package com.ifunsoftware.c3.access
 
 import fs.C3FileSystemNode
 import scala.collection.Map
+import scala.language.implicitConversions
 
 /**
  * Copyright iFunSoftware 2011

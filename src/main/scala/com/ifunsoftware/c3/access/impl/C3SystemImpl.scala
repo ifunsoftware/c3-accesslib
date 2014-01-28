@@ -22,7 +22,6 @@ import scala.Some
 import com.ifunsoftware.c3.access.SearchResultEntry
 import scala.xml.pull._
 import org.apache.commons.codec.binary.Base64
-import sun.net.util.URLUtil
 
 /**
  * Copyright iFunSoftware 2011
@@ -103,15 +102,13 @@ class C3SystemImpl(val host: String,
       method.addRequestHeader(header)
     }
 
-    executeMethod(method, status => {
-      status match {
-        case HttpStatus.SC_OK => {
-          val xml = XML.load(method.getResponseBodyAsStream)
-          log.trace("Got XML repsonse for url '{}': {}", relativeUrl, xml)
-          xml
-        }
-        case _ => handleError(status, method); null
+    executeMethod(method, {
+      case HttpStatus.SC_OK => {
+        val xml = XML.load(method.getResponseBodyAsStream)
+        log.trace("Got XML repsonse for url '{}': {}", relativeUrl, xml)
+        xml
       }
+      case status => handleError(status, method); null
     })
   }
 
@@ -148,11 +145,9 @@ class C3SystemImpl(val host: String,
 
     val method = createDeleteMethod(fileRequestUri + encodeFilePath(name))
 
-    executeMethod(method, status => {
-      status match {
-        case HttpStatus.SC_OK => Unit
-        case _ => handleError(status, method)
-      }
+    executeMethod(method, {
+      case HttpStatus.SC_OK => Unit
+      case status => handleError(status, method)
     })
   }
 
@@ -174,22 +169,20 @@ class C3SystemImpl(val host: String,
 
     method.setRequestEntity(new MultipartRequestEntity(createPartsArray(meta, data), method.getParams))
 
-    executeMethod(method, status => {
-      status match {
-        case HttpStatus.SC_CREATED => {
+    executeMethod(method, {
+      case HttpStatus.SC_CREATED => {
 
-          val xml = XML.load(method.getResponseBodyAsStream)
+        val xml = XML.load(method.getResponseBodyAsStream)
 
-          val uploadedTags = (xml \ "uploaded")
+        val uploadedTags = xml \ "uploaded"
 
-          if (uploadedTags.size > 0) {
-            ((uploadedTags(0)) \ "@address").text
-          } else {
-            null
-          }
+        if (uploadedTags.size > 0) {
+          (uploadedTags(0) \ "@address").text
+        } else {
+          null
         }
-        case _ => handleError(status, method); null
       }
+      case status => handleError(status, method); null
     })
   }
 
@@ -205,11 +198,9 @@ class C3SystemImpl(val host: String,
       new Header("x-c3-metadata", k + ":" + new String(Base64.encodeBase64(v.get.getBytes("UTF-8")), "UTF-8")))
     }
 
-    executeMethod(method, status => {
-      status match {
-        case HttpStatus.SC_CREATED => Unit
-        case _ => handleError(status, method); null
-      }
+    executeMethod(method, {
+      case HttpStatus.SC_CREATED => Unit
+      case status => handleError(status, method); null
     })
   }
 
@@ -219,20 +210,18 @@ class C3SystemImpl(val host: String,
 
     val method = createGetMethod(searchRequestUri + URLEncoder.encode(query, "UTF-8").replaceAll("\\+", "%20"))
 
-    executeMethod(method, status => {
-      status match {
-        case HttpStatus.SC_OK => {
+    executeMethod(method, {
+      case HttpStatus.SC_OK => {
 
-          val xml = XML.load(method.getResponseBodyAsStream)
+        val xml = XML.load(method.getResponseBodyAsStream)
 
-          log.trace("Got xml response for query '{}': {} ", query, xml)
+        log.trace("Got xml response for query '{}': {} ", query, xml)
 
-          val results = SearchResultEntryParser.parse(xml)
-          log.debug("Found '{}' resources ", results.length)
-          results
-        }
-        case _ => handleError(status, method); List()
+        val results = SearchResultEntryParser.parse(xml)
+        log.debug("Found '{}' resources ", results.length)
+        results
       }
+      case status => handleError(status, method); List()
     })
 
   }
@@ -255,16 +244,14 @@ class C3SystemImpl(val host: String,
 
     data.foreach{ data => method.setRequestEntity(data.createRequestEntity)}
 
-    executeMethod(method, status => {
-      status match {
-        case HttpStatus.SC_OK => {
+    executeMethod(method, {
+      case HttpStatus.SC_OK => {
 
-          val xml = XML.load(method.getResponseBodyAsStream)
+        val xml = XML.load(method.getResponseBodyAsStream)
 
-          ((xml \\ "uploaded")(0) \ "@version" text).toInt
-        }
-        case _ => handleError(status, method); Int.MinValue
+        ((xml \\ "uploaded")(0) \ "@version").text.toInt
       }
+      case status => handleError(status, method); Int.MinValue
     })
   }
 
@@ -274,11 +261,9 @@ class C3SystemImpl(val host: String,
 
     val method = createDeleteMethod(resourceRequestUri + address)
 
-    executeMethod(method, status => {
-      status match {
-        case HttpStatus.SC_OK => Unit
-        case _ => handleError(status, method)
-      }
+    executeMethod(method, {
+      case HttpStatus.SC_OK => Unit
+      case status => handleError(status, method)
     })
   }
 
@@ -351,11 +336,9 @@ class C3SystemImpl(val host: String,
     method.setRequestEntity(new StringRequestEntity(newPath, "text/plain", "UTF-8"))
 
 
-    executeMethod(method, status => {
-      status match {
-        case HttpStatus.SC_OK => Unit
-        case _ => handleError(status, method)
-      }
+    executeMethod(method, {
+      case HttpStatus.SC_OK => Unit
+      case status => handleError(status, method)
     })
   }
 
@@ -444,47 +427,46 @@ class C3SystemImpl(val host: String,
 
     addAuthHeaders(method, "/rest/query")
 
-    executeMethod(method, status =>
-      status match {
-        case HttpStatus.SC_OK => {
-          val source = Source.fromInputStream(new BufferedInputStream(method.getResponseBodyAsStream))
-          val er = new XMLEventReader(source)
+    executeMethod(method, {
+      case HttpStatus.SC_OK => {
+        val source = Source.fromInputStream(new BufferedInputStream(method.getResponseBodyAsStream))
+        val er = new XMLEventReader(source)
 
-          def processResourceXml(xml: Node){
-            val resourceTag = (xml \ "resource")(0)
-            val _address = (resourceTag \ "@address").text
-            val resource = new C3ResourceImpl(this, _address, xml)
-            function(resource)
-          }
-
-          try {
-            var resourceData: StringBuilder = new StringBuilder
-
-            while (er.hasNext) {
-              er.next() match {
-                case EvElemStart(_, "resources", _, _) => // Do nothing
-                case EvElemEnd(_, "resources") => // Do nothing
-                case x @ EvElemEnd(_, "resource") =>
-                  resourceData append backToXml(x)
-                  val resourceNode = XML.loadString(wrapResourceXmlData(resourceData.result()))
-                  processResourceXml(resourceNode)
-                  resourceData = new StringBuilder
-                case x @ EvElemStart(_, label, _, _) =>
-                  resourceData append backToXml(x)
-                case x @ EvElemEnd(_, label) =>
-                  resourceData append backToXml(x)
-                case EvText(text) if resourceData != null =>
-                  resourceData append text
-                case EvEntityRef(entity) => // TODO
-                case _ => // ignore everything else
-              }
-            }
-          } finally {
-            source.close()
-          }
+        def processResourceXml(xml: Node) {
+          val resourceTag = (xml \ "resource")(0)
+          val _address = (resourceTag \ "@address").text
+          val resource = new C3ResourceImpl(this, _address, xml)
+          function(resource)
         }
-        case _ => handleErrorCode("Failed to execute query, status is " + status, status)
+
+        try {
+          var resourceData: StringBuilder = new StringBuilder
+
+          while (er.hasNext) {
+            er.next() match {
+              case EvElemStart(_, "resources", _, _) => // Do nothing
+              case EvElemEnd(_, "resources") => // Do nothing
+              case x@EvElemEnd(_, "resource") =>
+                resourceData append backToXml(x)
+                val resourceNode = XML.loadString(wrapResourceXmlData(resourceData.result()))
+                processResourceXml(resourceNode)
+                resourceData = new StringBuilder
+              case x@EvElemStart(_, label, _, _) =>
+                resourceData append backToXml(x)
+              case x@EvElemEnd(_, label) =>
+                resourceData append backToXml(x)
+              case EvText(text) if resourceData != null =>
+                resourceData append text
+              case EvEntityRef(entity) => // TODO
+              case _ => // ignore everything else
+            }
+          }
+        } finally {
+          source.close()
+        }
       }
+      case status => handleErrorCode("Failed to execute query, status is " + status, status)
+    }
     )
   }
 
@@ -556,9 +538,9 @@ class C3SystemImpl(val host: String,
 
     for (b <- digest) {
       if ((0xFF & b) < 0x10) {
-        hexString.append("0").append(Integer.toHexString((0xFF & b)))
+        hexString.append("0").append(Integer.toHexString(0xFF & b))
       } else {
-        hexString.append(Integer.toHexString((0xFF & b)))
+        hexString.append(Integer.toHexString(0xFF & b))
       }
     }
 

@@ -12,7 +12,7 @@ import scala.Some
 import org.osgi.framework.BundleContext
 import org.slf4j.LoggerFactory
 import org.aphreet.c3.platform.domain.{Domain, DomainManager}
-import org.aphreet.c3.platform.search.{SearchResultElement, SearchManager}
+import org.aphreet.c3.platform.search.api.{SearchResultElement, SearchManager}
 import org.aphreet.c3.platform.query.{QueryConsumer, QueryManager}
 
 class LocalC3System(val domain: String, val bundleContext: AnyRef) extends C3System with DataConverter {
