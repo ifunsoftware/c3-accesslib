@@ -2,7 +2,6 @@ language: java
 sudo: false
 branches:
   only:
-    - master
     - release
 
 after_success:
