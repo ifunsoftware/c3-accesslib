@@ -1,17 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <name>C3 System Access Library</name>
     <groupId>com.ifunsoftware.c3</groupId>
     <artifactId>accesslib</artifactId>
-    <version>1.0.28-SNAPSHOT</version>
+    <version>1.0.28</version>
     <inceptionYear>2011</inceptionYear>
 
     <scm>
         <connection>scm:git:https://github.com/ifunsoftware/c3-accesslib.git</connection>
         <url>https://github.com/ifunsoftware/c3-accesslib</url>
         <developerConnection>scm:git:https://github.com/ifunsoftware/c3-accesslib.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v1.0.28</tag>
     </scm>
 
     <properties>
