@@ -2,5 +2,15 @@ language: java
 sudo: false
 branches:
   only:
-    - master
     - release
+
+after_success:
+  - git checkout ${TRAVIS_BRANCH}
+  - mvn -B release:prepare release:perform -Dresume=false -Dusername=${CI_RELEASE_USERNAME} -Dpassword=${CI_RELEASE_PASSWORD} -DscmCommentPrefix='[ci skip]'
+
+env:
+  global:
+    - secure: "k2sJS0MqCOQ77F2bW+RK4bN5MBFni9txH/FkvUgIj+aPfxVD5o712NXb6YzQbvcLI/6fwkqekY3pANAhUG7OzplDc8mE0j6HvtB5ejw2J6n9+Vuh5tiQQue8rCCPCTWy3UdJwbPJcI5flY5QMzMJU0BdBxOxlk/SH4W0ta8OnJc="
+    - secure: "Gz6uEUgj0667AftMet6tUoCPYU8TSKvRxjOhw9UsikitxFAYB4TuyIpTF2Bk5VyGsgzE7Zc64IDHKxP2JLDGfumNlJnTZCDyN1j2Sjkm8zB6NLy4pl2hmB8wNZrS7jzilsfBHkNgS08xNeZN7/tfGYiHFXOeKMIkrosiIrRNKjY="
+    - secure: "YtCAE7aiG10oxbIeLIn/LYzzlL5FYmMZEZCf6kx8IoaRHFBgCD4iZ5wXe24Vetkm/IYOMyfNwoYn3GMBryO8N7nmIeZt2WtwKZ8GKbu9LaXSeWTCNLuZ9ON0+819FepGMgaKsr7iV29pxI/fvNh88bP9B+EQX52GmQ7aFBC7pJo="
+    - secure: "gnQHGaBFKG/DWkLNKUPNGJ37Yom0uMoN25DSytZ2rjyvwHw4h/zf+iosa17TxM2no5jMG0idXnrdd7LY928ozrGwrtMP2vBDUNWyXCsbyf7gyq6tamsclfdBvR6iQTpX9k3B1QOAQylrTt6zYn65Lpm+u/fYp3CtLw1sQwB/xlc="
