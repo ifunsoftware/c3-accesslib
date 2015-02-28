@@ -6,6 +6,7 @@ branches:
     - release
 
 after_success:
+  - git checkout ${TRAVIS_BRANCH}
   - mvn -X -B release:prepare release:perform -Dresume=false -Dusername=${CI_RELEASE_USERNAME} -Dpassword=${CI_RELEASE_PASSWORD}
 
 env:
